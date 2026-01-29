@@ -20,9 +20,9 @@ last_characters = {}
 sent_characters = {}
 first_correct_guesses = {}
 message_counts = {}
-retro_message_counts = {}  # Track messages for Retro spawns (every 4k messages)
-star_message_counts = {}  # Track messages for Star spawns (every 200 messages)
-zenith_event_message_counts = {}  # Track messages for Zenith spawns during Christmas event (every 3015 messages)
+retro_message_counts = {}  # Track messages for Flat spawns (every 4k messages)
+star_message_counts = {}  # Track messages for Catapult spawns (every 200 messages)
+zenith_event_message_counts = {}  # Track messages for Knight spawns during Christmas event (every 3015 messages)
 manually_summoned = {}  # Track manually summoned characters to allow multiple marriages
 
 # Spam detection system
@@ -182,9 +182,9 @@ async def send_image(update: Update, context: CallbackContext) -> None:
     # Check for active event
     active_event = await event_settings_collection.find_one({'active': True})
     
-    # Get spawnable characters (exclude Star as it has its own spawn function, and Custom which never spawns)
+    # Get spawnable characters (exclude Catapult as it has its own spawn function, and Custom which never spawns)
     filter_criteria = {
-        'rarity': {'$nin': ['Star', 'Custom']},
+        'rarity': {'$nin': ['Catapult', 'Custom']},
         'id': {'$nin': locked_character_ids}
     }
     
@@ -203,16 +203,15 @@ async def send_image(update: Update, context: CallbackContext) -> None:
     # Higher weight = more likely to spawn
     # Check if we're in main GC for boosted Retro/Zenith rates
     if chat_id == -1002961536913:
-        # Main GC: Significantly higher Retro and Zenith rates
+        # Main GC: Significantly higher Flat and Knight rates
         rarity_weights = {
             "Common": 100,
-            "Uncommon": 80,
             "Rare": 50,
-            "Epic": 30,
-            "Legendary": 10,
-            "Mythic": 5,
-            "Retro": 20,
-            "Zenith": 10,
+            "Legendary": 15,
+            "Flat": 20,
+            "Ninja": 15,
+            "Knight": 10,
+            "Catapult": 5,
             "Limited Edition": 0.25,
             "Custom": 0
         }
@@ -220,13 +219,12 @@ async def send_image(update: Update, context: CallbackContext) -> None:
         # Other chats: Normal rates
         rarity_weights = {
             "Common": 100,
-            "Uncommon": 80,
             "Rare": 50,
-            "Epic": 30,
             "Legendary": 10,
-            "Mythic": 5,
-            "Retro": 5,
-            "Zenith": 1,
+            "Flat": 5,
+            "Ninja": 5,
+            "Knight": 5,
+            "Catapult": 1,
             "Limited Edition": 0.25,
             "Custom": 0
         }
@@ -289,14 +287,12 @@ async def send_image(update: Update, context: CallbackContext) -> None:
     # Rarity emoji mapping
     rarity_emojis = {
         "Common": "⚪️",
-        "Uncommon": "🟢", 
-        "Rare": "🔵",
-        "Epic": "🟣",
+        "Rare": "🟠", 
         "Legendary": "🟡",
-        "Mythic": "🏵",
-        "Retro": "🍥",
-        "Star": "⭐",
-        "Zenith": "🪩",
+        "Flat": "🔮",
+        "Ninja": "⚡️",
+        "Knight": "🗡",
+        "Catapult": "🪄",
         "Limited Edition": "🍬"
     }
     
@@ -337,24 +333,24 @@ async def send_image(update: Update, context: CallbackContext) -> None:
 
 
 async def send_star_character(update: Update, context: CallbackContext) -> None:
-    """Send a Star character every 200 messages in the main GC"""
+    """Send a Catapult character every 200 messages in the main GC"""
     chat_id = update.effective_chat.id
     
     # Check for active event
     active_event = await event_settings_collection.find_one({'active': True})
     
-    # Build filter criteria for Star characters
-    star_filter = {'rarity': 'Star'}
+    # Build filter criteria for Catapult characters
+    star_filter = {'rarity': 'Catapult'}
     
-    # If Christmas event is active, only spawn Star characters with 🎄 in name
+    # If Christmas event is active, only spawn Catapult characters with 🎄 in name
     if active_event and active_event.get('event_type') == 'christmas':
         star_filter['name'] = {'$regex': '🎄'}
     
-    # Get Star characters (respecting event filter)
+    # Get Catapult characters (respecting event filter)
     star_characters = list(await collection.find(star_filter).to_list(length=None))
     
     if not star_characters:
-        LOGGER.warning("No Star characters available to spawn (event filter may be active)")
+        LOGGER.warning("No Catapult characters available to spawn (event filter may be active)")
         return
     
     # Filter out locked characters
@@ -362,10 +358,10 @@ async def send_star_character(update: Update, context: CallbackContext) -> None:
     star_characters = [char for char in star_characters if char['id'] not in locked_character_ids]
     
     if not star_characters:
-        LOGGER.info("No unlocked Star characters available to spawn")
+        LOGGER.info("No unlocked Catapult characters available to spawn")
         return
     
-    # Track sent Star characters separately to avoid repeats
+    # Track sent Catapult characters separately to avoid repeats
     star_sent_key = f"{chat_id}_star"
     
     if star_sent_key not in sent_characters:
@@ -394,7 +390,7 @@ async def send_star_character(update: Update, context: CallbackContext) -> None:
         from shivu import process_image_url
         processed_url = await process_image_url(character['img_url'])
         
-        caption_text = f"⭐ A shining STAR beauty has appeared! Use /marry to add them to your harem!"
+        caption_text = f"🪄 A magical CATAPULT beauty has appeared! Use /marry to add them to your harem!"
         
         if is_video_character(character):
             try:
@@ -420,24 +416,24 @@ async def send_star_character(update: Update, context: CallbackContext) -> None:
         LOGGER.error(f"Error sending star character image: {str(e)}")
         await context.bot.send_message(
             chat_id=chat_id,
-            text=f"⭐ A shining STAR beauty has appeared! Use /marry to add them to your harem!\n\n⚠️ Image could not be loaded",
+            text=f"🪄 A magical CATAPULT beauty has appeared! Use /marry to add them to your harem!\n\n⚠️ Image could not be loaded",
             parse_mode='Markdown')
 
 
 async def send_zenith_event_character(update: Update, context: CallbackContext) -> None:
-    """Send a Zenith character with 🎄 every 3015 messages during Christmas event"""
+    """Send a Knight character with 🎄 every 3015 messages during Christmas event"""
     chat_id = update.effective_chat.id
     
-    # Get Zenith characters with 🎄 in name for Christmas event
+    # Get Knight characters with 🎄 in name for Christmas event
     zenith_filter = {
-        'rarity': 'Zenith',
+        'rarity': 'Knight',
         'name': {'$regex': '🎄'}
     }
     
     zenith_characters = list(await collection.find(zenith_filter).to_list(length=None))
     
     if not zenith_characters:
-        LOGGER.warning("No Zenith Christmas characters available to spawn")
+        LOGGER.warning("No Knight Christmas characters available to spawn")
         return
     
     # Filter out locked characters
@@ -445,10 +441,10 @@ async def send_zenith_event_character(update: Update, context: CallbackContext) 
     zenith_characters = [char for char in zenith_characters if char['id'] not in locked_character_ids]
     
     if not zenith_characters:
-        LOGGER.info("No unlocked Zenith Christmas characters available to spawn")
+        LOGGER.info("No unlocked Knight Christmas characters available to spawn")
         return
     
-    # Track sent Zenith event characters separately to avoid repeats
+    # Track sent Knight event characters separately to avoid repeats
     zenith_sent_key = f"{chat_id}_zenith_event"
     
     if zenith_sent_key not in sent_characters:
@@ -477,7 +473,7 @@ async def send_zenith_event_character(update: Update, context: CallbackContext) 
         from shivu import process_image_url
         processed_url = await process_image_url(character['img_url'])
         
-        caption_text = f"🪩🎄 A rare ZENITH Christmas beauty has appeared! Use /marry to add them to your harem!"
+        caption_text = f"🗡🎄 A valiant KNIGHT Christmas beauty has appeared! Use /marry to add them to your harem!"
         
         if is_video_character(character):
             try:
@@ -503,7 +499,7 @@ async def send_zenith_event_character(update: Update, context: CallbackContext) 
         LOGGER.error(f"Error sending zenith event character image: {str(e)}")
         await context.bot.send_message(
             chat_id=chat_id,
-            text=f"🪩🎄 A rare ZENITH Christmas beauty has appeared! Use /marry to add them to your harem!\n\n⚠️ Image could not be loaded",
+            text=f"🗡🎄 A valiant KNIGHT Christmas beauty has appeared! Use /marry to add them to your harem!\n\n⚠️ Image could not be loaded",
             parse_mode='Markdown')
 
 

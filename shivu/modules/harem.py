@@ -111,7 +111,7 @@ async def is_video_character(character, char_id=None, user_id=None):
     return False
 
 # Main group for membership checking
-MAIN_GROUP = "@CollectorOfficialGroup"
+MAIN_GROUP = "@EstariksUpdates"
 
 async def check_group_membership(user_id: int) -> bool:
     """Check if user is a member of the main group"""
@@ -172,7 +172,7 @@ async def sorts(update: Update, context: CallbackContext) -> None:
     # Handle filtering options
     if sort_type == 'rarity':
         if len(args) < 2:
-            valid_rarities = ["Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Retro", "Star", "Zenith", "Limited Edition"]
+            valid_rarities = ["Common", "Rare", "Legendary", "Flat", "Ninja", "Knight", "Catapult", "Limited Edition"]
             await update.message.reply_text(
                 "❌ Please specify a rarity!\n\n"
                 "<b>Valid rarities:</b>\n" + 
@@ -182,7 +182,7 @@ async def sorts(update: Update, context: CallbackContext) -> None:
             return
         
         rarity_filter = ' '.join(args[1:]).title()
-        valid_rarities = ["Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Retro", "Star", "Zenith", "Limited Edition"]
+        valid_rarities = ["Common", "Rare", "Legendary", "Flat", "Ninja", "Knight", "Catapult", "Limited Edition"]
         
         if rarity_filter not in valid_rarities:
             await update.message.reply_text(
@@ -335,14 +335,14 @@ async def harem(update: Update, context: CallbackContext, page=0) -> None:
     # Then apply sorting
     if sort_preference == 'rarity':
         # Sort by rarity (rarest first) then by name
-        rarity_order = ["Limited Edition", "Star", "Zenith", "Retro", "Mythic", "Legendary", "Epic", "Rare", "Uncommon", "Common"]
+        rarity_order = ["Limited Edition", "Catapult", "Knight", "Ninja", "Flat", "Legendary", "Rare", "Common"]
         characters = sorted(characters, key=lambda x: (rarity_order.index(x.get('rarity', 'Common')), x['name']))
     elif sort_preference == 'name':
         # Sort by character name alphabetically
         characters = sorted(characters, key=lambda x: x['name'])
     elif sort_preference == 'limited_time':
         # Sort by limited time cards first, then by rarity, then by name
-        rarity_order = ["Limited Edition", "Star", "Zenith", "Retro", "Mythic", "Legendary", "Epic", "Rare", "Uncommon", "Common"]
+        rarity_order = ["Limited Edition", "Catapult", "Knight", "Ninja", "Flat", "Legendary", "Rare", "Common"]
         characters = sorted(characters, key=lambda x: (
             0 if x.get('rarity') == 'Limited Edition' else 1,  # Limited Edition first
             rarity_order.index(x.get('rarity', 'Common')),
@@ -396,14 +396,12 @@ async def harem(update: Update, context: CallbackContext, page=0) -> None:
             # Add rarity emoji to make it more beautiful
             rarity_emojis = {
                 "Common": "⚪️",
-                "Uncommon": "🟢",
-                "Rare": "🔵",
-                "Epic": "🟣",
+                "Rare": "🟠",
                 "Legendary": "🟡",
-                "Mythic": "🏵",
-                "Retro": "🍥",
-                "Star": "⭐",
-                "Zenith": "🪩",
+                "Flat": "🔮",
+                "Ninja": "⚡️",
+                "Knight": "🗡",
+                "Catapult": "🪄",
                 "Limited Edition": "🍬"
             }
             rarity_emoji = rarity_emojis.get(character.get('rarity', 'Common'), "✨")

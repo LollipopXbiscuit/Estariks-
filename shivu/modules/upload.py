@@ -13,14 +13,12 @@ from shivu.modules.harem import get_character_display_url
 # Rarity styles for display purposes
 rarity_styles = {
     "Common": "⚪️",
-    "Uncommon": "🟢",
-    "Rare": "🔵",
-    "Epic": "🟣",
+    "Rare": "🟠",
     "Legendary": "🟡",
-    "Mythic": "🏵",
-    "Retro": "🍥",
-    "Star": "⭐",
-    "Zenith": "🪩",
+    "Flat": "🔮",
+    "Ninja": "⚡️",
+    "Knight": "🗡",
+    "Catapult": "🪄",
     "Limited Edition": "🍬",
     "Custom": "👾"
 }
@@ -34,11 +32,8 @@ img_url character-name anime-name rarity-number
 𝘠𝘰𝘶 𝘤𝘢𝘯 𝘶𝘱𝘭𝘰𝘢𝘥 𝘵𝘩𝘦𝘴𝘦 𝘳𝘢𝘳𝘪𝘵𝘪𝘦𝘴 :
 
 1 = ⚪️ Common
-2 = 🟢 Uncommon  
-3 = 🔵 Rare
-4 = 🟣 Epic
-5 = 🟡 Legendary
-6 = 🏵 Mythic
+2 = 🟠 Rare
+3 = 🟡 Legendary
 
 𝘠𝘰𝘶𝘳 𝘶𝘱𝘭𝘰𝘢𝘥𝘦𝘳 𝘭𝘦𝘷𝘦𝘭 𝘪𝘴 1 🪄 !
 
@@ -51,14 +46,11 @@ img_url character-name anime-name rarity-number
 𝘠𝘰𝘶 𝘤𝘢𝘯 𝘶𝘱𝘭𝘰𝘢𝘥 𝘵𝘩𝘦𝘴𝘦 𝘳𝘢𝘳𝘪𝘵𝘪𝘦𝘴 :
 
 1 = ⚪️ Common
-2 = 🟢 Uncommon  
-3 = 🔵 Rare
-4 = 🟣 Epic
-5 = 🟡 Legendary
-6 = 🏵 Mythic
-7 = 🍥 Retro
-8 = ⭐ Star
-9 = 🪩 Zenith
+2 = 🟠 Rare
+3 = 🟡 Legendary
+4 = 🔮 Flat
+5 = ⚡️ Ninja
+6 = 🗡 Knight
 
 𝘠𝘰𝘶𝘳 𝘶𝘱𝘭𝘰𝘢𝘥𝘦𝘳 𝘭𝘦𝘷𝘦𝘭 𝘪𝘴 2 🎏 !
 
@@ -71,18 +63,16 @@ img_url character-name anime-name rarity-number
 𝘠𝘰𝘶 𝘤𝘢𝘯 𝘶𝘱𝘭𝘰𝘢𝘥 𝘢𝘭𝘭 𝘳𝘢𝘳𝘪𝘵𝘪𝘦𝘴 :
 
 1 = ⚪️ Common
-2 = 🟢 Uncommon  
-3 = 🔵 Rare
-4 = 🟣 Epic
-5 = 🟡 Legendary
-6 = 🏵 Mythic
-7 = 🍥 Retro
-8 = ⭐ Star
-9 = 🪩 Zenith
-10 = 🍬 Limited Edition
-11 = 👾 Custom 
+2 = 🟠 Rare
+3 = 🟡 Legendary
+4 = 🔮 Flat
+5 = ⚡️ Ninja
+6 = 🗡 Knight
+7 = 🪄 Catapult
+8 = 🍬 Limited Edition
+9 = 👾 Custom 
 
-𝘠𝘰𝘶𝘳 𝘶𝘱𝘭𝘰𝘢𝘥𝘦𝘳 𝘭𝘦𝘷𝘦𝘭 𝘪𝘴 3 🎐 !
+𝘠𝘰𝘶𝘳 𝘶𝘱𝘭𝘰𝘢𝘥𝘦𝘳 𝘭𝘦𝘷𝘦𝘭 is 3 🎐 !
 
 ✅ Supported: Discord CDN links, direct image/video URLs (including MP4), and other standard hosting services"""
 
@@ -321,25 +311,23 @@ async def upload(update: Update, context: CallbackContext) -> None:
 
         rarity_map = {
             1: "Common", 
-            2: "Uncommon", 
-            3: "Rare", 
-            4: "Epic", 
-            5: "Legendary", 
-            6: "Mythic", 
-            7: "Retro", 
-            8: "Star", 
-            9: "Zenith", 
-            10: "Limited Edition",
-            11: "Custom"
+            2: "Rare", 
+            3: "Legendary", 
+            4: "Flat", 
+            5: "Ninja", 
+            6: "Knight", 
+            7: "Catapult", 
+            8: "Limited Edition",
+            9: "Custom"
         }
         try:
             rarity_num = int(args[3])
             # Level restrictions
-            if level == 1 and rarity_num > 6:
-                await update.message.reply_text('❌ Level 1 uploaders can only upload up to Mythic rank (1-6).')
+            if level == 1 and rarity_num > 3:
+                await update.message.reply_text('❌ Level 1 uploaders can only upload up to Legendary rank (1-3).')
                 return
-            if level == 2 and rarity_num > 9:
-                await update.message.reply_text('❌ Level 2 uploaders can only upload up to Zenith rank (1-9).')
+            if level == 2 and rarity_num > 6:
+                await update.message.reply_text('❌ Level 2 uploaders can only upload up to Knight rank (1-6).')
                 return
             
             rarity = rarity_map[rarity_num]
@@ -434,13 +422,13 @@ async def update_card(update: Update, context: CallbackContext) -> None:
         is_video = 'video' in validation_message.lower() or any(ext in new_img_url.lower() for ext in ['.mp4', '.mov', '.avi', '.mkv'])
 
         rarity_map = {
-            1: "Common", 2: "Uncommon", 3: "Rare", 4: "Epic", 5: "Legendary", 
-            6: "Mythic", 7: "Retro", 8: "Star", 9: "Zenith", 10: "Limited Edition"
+            1: "Common", 2: "Rare", 3: "Legendary", 4: "Flat", 5: "Ninja", 
+            6: "Knight", 7: "Catapult", 8: "Limited Edition"
         }
         try:
             rarity = rarity_map[int(args[4])]
         except (KeyError, ValueError):
-            await update.message.reply_text('Invalid rarity (1-10).')
+            await update.message.reply_text('Invalid rarity (1-8).')
             return
 
         rarity_emoji = rarity_styles.get(rarity, "")
@@ -570,14 +558,12 @@ async def summon(update: Update, context: CallbackContext) -> None:
         # Higher weight = more likely to spawn
         rarities_weights = {
             "Common": 100,
-            "Uncommon": 80,
             "Rare": 50,
-            "Epic": 30,
             "Legendary": 10,
-            "Mythic": 5,
-            "Retro": 5,
-            "Star": 0,
-            "Zenith": 1,
+            "Flat": 5,
+            "Ninja": 5,
+            "Knight": 5,
+            "Catapult": 5,
             "Limited Edition": 0.25,
             "Custom": 0
         }

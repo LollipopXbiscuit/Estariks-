@@ -61,14 +61,12 @@ async def lockspawn(client, message):
     
     rarity_emojis = {
         "Common": "⚪️",
-        "Uncommon": "🟢",
-        "Rare": "🔵",
-        "Epic": "🟣",
+        "Rare": "🟠",
         "Legendary": "🟡",
-        "Mythic": "🏵",
-        "Retro": "🍥",
-        "Star": "⭐",
-        "Zenith": "🪩",
+        "Flat": "🔮",
+        "Ninja": "⚡️",
+        "Knight": "🗡",
+        "Catapult": "🪄",
         "Limited Edition": "🍬"
     }
     
@@ -159,20 +157,18 @@ async def lockedspawns(client, message, page=0):
     
     rarity_emojis = {
         "Common": "⚪️",
-        "Uncommon": "🟢",
-        "Rare": "🔵",
-        "Epic": "🟣",
+        "Rare": "🟠",
         "Legendary": "🟡",
-        "Mythic": "🏵",
-        "Retro": "🍥",
-        "Star": "⭐",
-        "Zenith": "🪩",
+        "Flat": "🔮",
+        "Ninja": "⚡️",
+        "Knight": "🗡",
+        "Catapult": "🪄",
         "Limited Edition": "🍬"
     }
     
     message_text = f"🔒 **Locked Spawn Characters** - Page {page+1}/{total_pages}\n"
     
-    for rarity in ["Limited Edition", "Star", "Zenith", "Retro", "Mythic", "Legendary", "Epic", "Rare", "Uncommon", "Common"]:
+    for rarity in ["Limited Edition", "Catapult", "Knight", "Ninja", "Flat", "Legendary", "Rare", "Common"]:
         if rarity in rarity_groups:
             rarity_emoji = rarity_emojis.get(rarity, "✨")
             message_text += f"\n{rarity_emoji} **{rarity}:**\n"
@@ -245,7 +241,7 @@ async def lockedspawns_callback(client, callback_query):
         
         message_text = f"🔒 **Locked Spawn Characters** - Page {page+1}/{total_pages}\n"
         
-        for rarity in ["Limited Edition", "Star", "Zenith", "Retro", "Mythic", "Legendary", "Epic", "Rare", "Uncommon", "Common"]:
+        for rarity in ["Limited Edition", "Catapult", "Knight", "Ninja", "Flat", "Legendary", "Rare", "Common"]:
             if rarity in rarity_groups:
                 rarity_emoji = rarity_emojis.get(rarity, "✨")
                 message_text += f"\n{rarity_emoji} **{rarity}:**\n"
@@ -280,15 +276,14 @@ async def rarity(client, message):
     message_text = (
         "🎏 𝘊𝘩𝘢𝘳𝘢𝘤𝘵𝘦𝘳 𝘙𝘢𝘳𝘪𝘵𝘺 𝘚𝘺𝘴𝘵𝘦𝘮 🎏\n\n"
         "🎐 𝘙𝘦𝘨𝘶𝘭𝘢𝘳 𝘚𝘱𝘢𝘸𝘯𝘴 (𝘦𝘷𝘦𝘳𝘺 100 𝘮𝘦𝘴𝘴𝘢𝘨𝘦𝘴)\n\n"
-        "⚪️ 𝘊𝘰𝘮𝘮𝘰𝘯 : 20% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🟢 𝘜𝘯𝘤𝘰𝘮𝘮𝘰𝘯 : 20% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🔵 𝘙𝘢𝘳𝘦 : 20% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🟣 𝘌𝘱𝘪𝘤 : 20% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🟡 𝘓𝘦𝘨𝘦𝘯𝘥𝘢𝘳𝘺 : 2% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🏵 𝘔𝘺𝘵𝘩𝘪𝘤 : 0.8% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🍥 𝘙𝘦𝘵𝘳𝘰 : 0.4% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🪩 𝘡𝘦𝘯𝘪𝘵𝘩 : 0.01% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🍬 𝘓𝘪𝘮𝘪𝘵𝘦𝘥 𝘌𝘥𝘪𝘵𝘪𝘰𝘯 : 0.001% 𝘤𝘩𝘢𝘯𝘤𝘦\n\n"
+        "⚪️ 𝘊𝘰𝘮𝘮𝘰𝘯 : 25% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "🟠 𝘙𝘢𝘳𝘦 : 25% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "🟡 𝘓𝘦𝘨𝘦𝘯𝘥𝘢𝘳𝘺 : 15% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "🔮 𝘍𝘭𝘢𝘵 : 10% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "⚡️ 𝘕𝘪𝘯𝘫𝘢 : 10% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "🗡 𝘒𝘯𝘪𝘨𝘩𝘵 : 10% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "🪄 𝘊𝘢𝘵𝘢𝘱𝘶𝘭𝘵 : 4.9% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "🍬 𝘓𝘪𝘮𝘪𝘵𝘦𝘥 𝘌𝘥𝘪𝘵𝘪𝘰𝘯 : 0.1% 𝘤𝘩𝘢𝘯𝘤𝘦\n\n"
         "👾 𝘊𝘶𝘴𝘵𝘰𝘮 𝘊𝘩𝘢𝘳𝘢𝘤𝘵𝘦𝘳𝘴 𝘢𝘳𝘦 𝘰𝘳𝘥𝘦𝘳𝘦𝘥 𝘵𝘰 𝘛𝘩𝘦 𝘖𝘸𝘯𝘦𝘳 𝘢𝘯𝘥 𝘵𝘩𝘦𝘺 𝘤𝘢𝘯 𝘰𝘯𝘭𝘺 𝘩𝘢𝘷𝘦 𝘶𝘱 𝘵𝘰 2 𝘖𝘸𝘯𝘦𝘳𝘴. (𝘛𝘩𝘦𝘺 𝘸𝘪𝘭𝘭 𝘯𝘦𝘷𝘦𝘳 𝘴𝘱𝘢𝘸𝘯)"
     )
   
@@ -432,7 +427,7 @@ async def lockedspawns_ptb(update: Update, context: CallbackContext, page=0):
     
     message_text = f"🔒 **Locked Spawn Characters** - Page {page+1}/{total_pages}\n"
     
-    for rarity in ["Limited Edition", "Star", "Zenith", "Retro", "Mythic", "Legendary", "Epic", "Rare", "Uncommon", "Common"]:
+    for rarity in ["Limited Edition", "Catapult", "Knight", "Ninja", "Flat", "Legendary", "Rare", "Common"]:
         if rarity in rarity_groups:
             rarity_emoji = rarity_emojis.get(rarity, "✨")
             message_text += f"\n{rarity_emoji} **{rarity}:**\n"
@@ -494,7 +489,7 @@ async def lockedspawns_callback_ptb(update: Update, context: CallbackContext):
         
         message_text = f"🔒 **Locked Spawn Characters** - Page {page+1}/{total_pages}\n"
         
-        for rarity in ["Limited Edition", "Star", "Zenith", "Retro", "Mythic", "Legendary", "Epic", "Rare", "Uncommon", "Common"]:
+        for rarity in ["Limited Edition", "Catapult", "Knight", "Ninja", "Flat", "Legendary", "Rare", "Common"]:
             if rarity in rarity_groups:
                 rarity_emoji = rarity_emojis.get(rarity, "✨")
                 message_text += f"\n{rarity_emoji} **{rarity}:**\n"
@@ -528,15 +523,14 @@ async def rarity_ptb(update: Update, context: CallbackContext):
     message_text = (
         "🎏 𝘊𝘩𝘢𝘳𝘢𝘤𝘵𝘦𝘳 𝘙𝘢𝘳𝘪𝘵𝘺 𝘚𝘺𝘴𝘵𝘦𝘮 🎏\n\n"
         "🎐 𝘙𝘦𝘨𝘶𝘭𝘢𝘳 𝘚𝘱𝘢𝘸𝘯𝘴 (𝘦𝘷𝘦𝘳𝘺 100 𝘮𝘦𝘴𝘴𝘢𝘨𝘦𝘴)\n\n"
-        "⚪️ 𝘊𝘰𝘮𝘮𝘰𝘯 : 20% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🟢 𝘜𝘯𝘤𝘰𝘮𝘮𝘰𝘯 : 20% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🔵 𝘙𝘢𝘳𝘦 : 20% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🟣 𝘌𝘱𝘪𝘤 : 20% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🟡 𝘓𝘦𝘨𝘦𝘯𝘥𝘢𝘳𝘺 : 2% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🏵 𝘔𝘺𝘵𝘩𝘪𝘤 : 0.8% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🍥 𝘙𝘦𝘵𝘳𝘰 : 0.4% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🪩 𝘡𝘦𝘯𝘪𝘵𝘩 : 0.01% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🍬 𝘓𝘪𝘮𝘪𝘵𝘦𝘥 𝘌𝘥𝘪𝘵𝘪𝘰𝘯 : 0.001% 𝘤𝘩𝘢𝘯𝘤𝘦\n\n"
+        "⚪️ 𝘊𝘰𝘮𝘮𝘰𝘯 : 25% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "🟠 𝘙𝘢𝘳𝘦 : 25% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "🟡 𝘓𝘦𝘨𝘦𝘯𝘥𝘢𝘳𝘺 : 15% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "🔮 𝘍𝘭𝘢𝘵 : 10% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "⚡️ 𝘕𝘪𝘯𝘫𝘢 : 10% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "🗡 𝘒𝘯𝘪𝘨𝘩𝘵 : 10% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "🪄 𝘊𝘢𝘵𝘢𝘱𝘶𝘭𝘵 : 4.9% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "🍬 𝘓𝘪𝘮𝘪𝘵𝘦𝘥 𝘌𝘥𝘪𝘵𝘪𝘰𝘯 : 0.1% 𝘤𝘩𝘢𝘯𝘤𝘦\n\n"
         "👾 𝘊𝘶𝘴𝘵𝘰𝘮 𝘊𝘩𝘢𝘳𝘢𝘤𝘵𝘦𝘳𝘴 𝘢𝘳𝘦 𝘰𝘳𝘥𝘦𝘳𝘦𝘥 𝘵𝘰 𝘛𝘩𝘦 𝘖𝘸𝘯𝘦𝘳 𝘢𝘯𝘥 𝘵𝘩𝘦𝘺 𝘤𝘢𝘯 𝘰𝘯𝘭𝘺 𝘩𝘢𝘷𝘦 𝘶𝘱 𝘵𝘰 2 𝘖𝘸𝘯𝘦𝘳𝘴. (𝘛𝘩𝘦𝘺 𝘸𝘪𝘭𝘭 𝘯𝘦𝘷𝘦𝘳 𝘴𝘱𝘢𝘸𝘯)"
     )
   
