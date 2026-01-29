@@ -34,18 +34,17 @@ async def start(update: Update, context: CallbackContext) -> None:
     if update.effective_chat.type== "private":
         
         
-        caption = f"""
-✨ **Welcome to Waifu & Husbando Catcher!** ✨
+        caption = f"""🏐 𝘞𝘦𝘭𝘤𝘰𝘮𝘦 𝘵𝘰 𝘌𝘴𝘵𝘢𝘳𝘪𝘬𝘴 𝘣𝘰𝘵 ~
 
-💕 **Your ultimate anime character collection bot!**
+💒 - 𝘈𝘤𝘩𝘪𝘦𝘷𝘦 𝘵𝘩𝘰𝘶𝘴𝘢𝘯𝘥𝘴 𝘰𝘧 𝘗𝘳𝘦𝘤𝘪𝘰𝘶𝘴 𝘊𝘩𝘢𝘳𝘢𝘤𝘵𝘦𝘳𝘴.
 
-🎮 **How it works:**
-• Add me to your group and I'll send random anime characters every 100 messages
-• Use /marry to catch characters and add them to your collection
-• Build your dream collection and trade with friends!
-• View your collection anytime with /collection
+🏩 - 𝘛𝘳𝘢𝘥𝘦 𝘢𝘯𝘥 𝘎𝘪𝘧𝘵 𝘺𝘰𝘶𝘳 𝘤𝘩𝘢𝘳𝘢𝘤𝘵𝘦𝘳𝘴 𝘵𝘰 𝘺𝘰𝘶𝘳 𝘧𝘳𝘪𝘦𝘯𝘥𝘴 𝘢𝘯𝘥 𝘰𝘵𝘩𝘦𝘳 𝘱𝘭𝘢𝘺𝘦𝘳𝘴
 
-🌟 **Ready to start your anime adventure?** Add me to your group now!
+🗼 - 𝘊𝘰𝘭𝘭𝘦𝘤𝘵 𝘺𝘰𝘶𝘳 𝘥𝘳𝘦𝘢𝘮 𝘤𝘰𝘭𝘭𝘦𝘤𝘵𝘪𝘰𝘯
+
+🎀 𝘚𝘶𝘱𝘱𝘰𝘳𝘵 𝘤𝘩𝘢𝘯𝘯𝘦𝘭 : @EstariksUpdates
+
+🎟 𝘔𝘢𝘪𝘯 𝘨𝘤 : @EstariksUpdates
         """
         
         keyboard = [
@@ -53,21 +52,19 @@ async def start(update: Update, context: CallbackContext) -> None:
             [InlineKeyboardButton("HELP", callback_data='help')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        from shivu import process_image_url
-        photo_url = await process_image_url(random.choice(PHOTO_URL))
+        photo_url = "https://fcdn.koyeb.app/dl/697bd4ac8e4f7a0c0bbb8734/Anime%20gif%20scenery%20%282%29.gif"
 
-        await context.bot.send_photo(chat_id=update.effective_chat.id, photo=photo_url, caption=caption, reply_markup=reply_markup, parse_mode='markdown')
+        await context.bot.send_animation(chat_id=update.effective_chat.id, animation=photo_url, caption=caption, reply_markup=reply_markup, parse_mode='HTML')
 
     else:
-        from shivu import process_image_url
-        photo_url = await process_image_url(random.choice(PHOTO_URL))
+        photo_url = "https://fcdn.koyeb.app/dl/697bd4ac8e4f7a0c0bbb8734/Anime%20gif%20scenery%20%282%29.gif"
         keyboard = [
             [InlineKeyboardButton("SUPPORT", url=f'http://t.me/{SUPPORT_CHAT}')],
             [InlineKeyboardButton("HELP", callback_data='help')]
         ]
         
         reply_markup = InlineKeyboardMarkup(keyboard)
-        await context.bot.send_photo(chat_id=update.effective_chat.id, photo=photo_url, caption="🎴Alive!?... \n connect to me in PM For more information ",reply_markup=reply_markup )
+        await context.bot.send_animation(chat_id=update.effective_chat.id, animation=photo_url, caption="🎴Alive!?... \n connect to me in PM For more information ",reply_markup=reply_markup )
 
 async def button(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
@@ -94,18 +91,17 @@ async def button(update: Update, context: CallbackContext) -> None:
 
     elif query.data == 'back':
 
-        caption = f"""
-✨ **Welcome to Waifu & Husbando Catcher!** ✨
+        caption = f"""🏐 𝘞𝘦𝘭𝘤𝘰𝘮𝘦 𝘵𝘰 𝘌𝘴𝘵𝘢𝘳𝘪𝘬𝘴 𝘣𝘰𝘵 ~
 
-💕 **Your ultimate anime character collection bot!**
+💒 - 𝘈𝘤𝘩𝘪𝘦𝘷𝘦 𝘵𝘩𝘰𝘶𝘴𝘢𝘯𝘥𝘴 𝘰𝘧 𝘗𝘳𝘦𝘤𝘪𝘰𝘶𝘴 𝘊𝘩𝘢𝘳𝘢𝘤𝘵𝘦𝘳𝘴.
 
-🎮 **How it works:**
-• Add me to your group and I'll send random anime characters every 100 messages
-• Use /marry to catch characters and add them to your collection
-• Build your dream collection and trade with friends!
-• View your collection anytime with /collection
+🏩 - 𝘛𝘳𝘢𝘥𝘦 𝘢𝘯𝘥 𝘎𝘪𝘧𝘵 𝘺𝘰𝘶𝘳 𝘤𝘩𝘢𝘳𝘢𝘤𝘵𝘦𝘳𝘴 𝘵𝘰 𝘺𝘰𝘶𝘳 𝘧𝘳𝘪𝘦𝘯𝘥𝘴 𝘢𝘯𝘥 𝘰𝘵𝘩𝘦𝘳 𝘱𝘭𝘢𝘺𝘦𝘳𝘴
 
-🌟 **Ready to start your anime adventure?** Add me to your group now!
+🗼 - 𝘊𝘰𝘭𝘭𝘦𝘤𝘵 𝘺𝘰𝘶𝘳 𝘥𝘳𝘦𝘢𝘮 𝘤𝘰𝘭𝘭𝘦𝘤𝘵𝘪𝘰𝘯
+
+🎀 𝘚𝘶𝘱𝘱𝘰𝘳𝘵 𝘤𝘩𝘢𝘯𝘯𝘦𝘭 : @EstariksUpdates
+
+🎟 𝘔𝘢𝘪𝘯 𝘨𝘤 : @EstariksUpdates
         """
 
         
@@ -115,7 +111,7 @@ async def button(update: Update, context: CallbackContext) -> None:
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
 
-        await context.bot.edit_message_caption(chat_id=update.effective_chat.id, message_id=query.message.message_id, caption=caption, reply_markup=reply_markup, parse_mode='markdown')
+        await context.bot.edit_message_caption(chat_id=update.effective_chat.id, message_id=query.message.message_id, caption=caption, reply_markup=reply_markup, parse_mode='HTML')
 
 
 application.add_handler(CallbackQueryHandler(button, pattern='^help$|^back$', block=False))
