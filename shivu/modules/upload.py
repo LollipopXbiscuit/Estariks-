@@ -723,6 +723,28 @@ async def remove_character_from_user(update: Update, context: CallbackContext) -
         await update.message.reply_text(f'❌ Error removing character: {str(e)}')
 
 
+# Event configuration
+events = {
+    "Football ⚽️": "⚽️",
+    "Basketball 🏀": "🏀",
+    "Tenis 🎾": "🎾",
+    "𝗣𝗢𝗟𝗜𝗖𝗘 🚨": "🚨",
+    "𝗕𝗔𝗥𝗧𝗘𝗡𝗗𝗘𝗥 🍾": "🍾",
+    "Gamer 🎮": "🎮",
+    "Christmas🎄": "🎄",
+    "Halloween 🎃": "🎃",
+    "Valentine 💝": "💝"
+}
+
+def get_event_name(character_name):
+    """Detect which event a character belongs to based on the emoji in their name"""
+    if not character_name:
+        return None
+    for event_name, emoji in events.items():
+        if emoji in character_name:
+            return event_name
+    return None
+
 async def find(update: Update, context: CallbackContext) -> None:
     """Find a character by ID number"""
     if not update.effective_chat or not update.message:
@@ -767,11 +789,15 @@ async def find(update: Update, context: CallbackContext) -> None:
         global_catchers.sort(key=lambda x: x['count'], reverse=True)
         top_10 = global_catchers[:10]
         
+        # Detect event
+        event_name = get_event_name(character.get('name', ''))
+        event_line = f"\n🌟 Event: {event_name}" if event_name else ""
+
         # Create new format caption
-        caption = f"OwO! Look out this character!\n\n"
+        caption = f"OwO! Check out this Character!\n\n"
         caption += f"{character['anime']}\n"
-        caption += f"{character['id']}: {character['name']}\n"
-        caption += f"({rarity_emoji} 𝙍𝘼𝙍𝙄𝙏𝙔: {character.get('rarity', 'Unknown').lower()})\n\n"
+        caption += f"{character['id']} {character['name']}\n"
+        caption += f"(𝙍𝘼𝙍𝙄𝙏𝙔: {rarity_emoji} {character.get('rarity', 'Unknown')}){event_line}\n\n"
         caption += f"⦿ ɢʟᴏʙᴀʟʟʏ ᴄᴀᴜɢʜᴛ : {total_caught} ᴛɪᴍᴇs\n\n"
         caption += "🏆 ᴛᴏᴘ 10 ɢʟᴏʙᴀʟ ᴄᴀᴛᴄʜᴇʀs\n"
         
