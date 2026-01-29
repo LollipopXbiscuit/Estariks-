@@ -557,11 +557,11 @@ async def summon(update: Update, context: CallbackContext) -> None:
         rarities_weights = {
             "Common": 100,
             "Rare": 50,
-            "Legendary": 10,
+            "Legendary": 2,
             "Flat": 5,
-            "Ninja": 5,
-            "Knight": 5,
-            "Catapult": 5,
+            "Ninja": 1,
+            "Knight": 0.5,
+            "Catapult": 0,
             "Custom": 0
         }
         

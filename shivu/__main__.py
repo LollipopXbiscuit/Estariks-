@@ -201,17 +201,17 @@ async def send_image(update: Update, context: CallbackContext) -> None:
     
     # Define rarity weights for weighted random selection
     # Higher weight = more likely to spawn
-    # Check if we're in main GC for boosted Retro/Zenith rates
+    # Check if we're in main GC for boosted rates
     if chat_id == -1002961536913:
-        # Main GC: Significantly higher Flat and Knight rates
+        # Main GC: Slightly boosted Flat rates
         rarity_weights = {
             "Common": 100,
             "Rare": 50,
-            "Legendary": 15,
-            "Flat": 20,
-            "Ninja": 15,
-            "Knight": 10,
-            "Catapult": 5,
+            "Legendary": 5,   # Above Flat - Very Rare
+            "Flat": 10,       # Base for "above flat" logic
+            "Ninja": 2,       # Above Flat - Very Rare
+            "Knight": 1,       # Above Flat - Very Rare
+            "Catapult": 0,    # Disabled
             "Custom": 0
         }
     else:
@@ -219,11 +219,11 @@ async def send_image(update: Update, context: CallbackContext) -> None:
         rarity_weights = {
             "Common": 100,
             "Rare": 50,
-            "Legendary": 10,
-            "Flat": 5,
-            "Ninja": 5,
-            "Knight": 5,
-            "Catapult": 1,
+            "Legendary": 2,   # Above Flat - Very Rare
+            "Flat": 5,        # Base for "above flat" logic
+            "Ninja": 1,       # Above Flat - Very Rare
+            "Knight": 0.5,    # Above Flat - Very Rare
+            "Catapult": 0,    # Disabled
             "Custom": 0
         }
     
