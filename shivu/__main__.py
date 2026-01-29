@@ -212,7 +212,6 @@ async def send_image(update: Update, context: CallbackContext) -> None:
             "Ninja": 15,
             "Knight": 10,
             "Catapult": 5,
-            "Limited Edition": 0.25,
             "Custom": 0
         }
     else:
@@ -225,7 +224,6 @@ async def send_image(update: Update, context: CallbackContext) -> None:
             "Ninja": 5,
             "Knight": 5,
             "Catapult": 1,
-            "Limited Edition": 0.25,
             "Custom": 0
         }
     
@@ -292,8 +290,7 @@ async def send_image(update: Update, context: CallbackContext) -> None:
         "Flat": "🔮",
         "Ninja": "⚡️",
         "Knight": "🗡",
-        "Catapult": "🪄",
-        "Limited Edition": "🍬"
+        "Catapult": "🪄"
     }
     
     rarity_emoji = rarity_emojis.get(character['rarity'], "✨")

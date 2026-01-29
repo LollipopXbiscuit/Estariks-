@@ -19,7 +19,6 @@ rarity_styles = {
     "Ninja": "⚡️",
     "Knight": "🗡",
     "Catapult": "🪄",
-    "Limited Edition": "🍬",
     "Custom": "👾"
 }
 
@@ -317,8 +316,7 @@ async def upload(update: Update, context: CallbackContext) -> None:
             5: "Ninja", 
             6: "Knight", 
             7: "Catapult", 
-            8: "Limited Edition",
-            9: "Custom"
+            8: "Custom"
         }
         try:
             rarity_num = int(args[3])
@@ -423,7 +421,7 @@ async def update_card(update: Update, context: CallbackContext) -> None:
 
         rarity_map = {
             1: "Common", 2: "Rare", 3: "Legendary", 4: "Flat", 5: "Ninja", 
-            6: "Knight", 7: "Catapult", 8: "Limited Edition"
+            6: "Knight", 7: "Catapult"
         }
         try:
             rarity = rarity_map[int(args[4])]
@@ -564,7 +562,6 @@ async def summon(update: Update, context: CallbackContext) -> None:
             "Ninja": 5,
             "Knight": 5,
             "Catapult": 5,
-            "Limited Edition": 0.25,
             "Custom": 0
         }
         
@@ -604,7 +601,7 @@ async def summon(update: Update, context: CallbackContext) -> None:
         ]).to_list(length=1)
         
         if not random_character:
-            await update.message.reply_text('❌ No spawnable characters available!\n\nAll characters in the database appear to be Limited Edition or non-spawnable. Please upload some common characters using /upload.')
+            await update.message.reply_text('❌ No spawnable characters available!')
             return
             
         character = random_character[0]

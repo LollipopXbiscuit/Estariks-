@@ -51,7 +51,6 @@ rarity_emojis = {
     "Retro": "🍥",
     "Star": "⭐",
     "Zenith": "🪩",
-    "Limited Edition": "🍬",
     "Flat": "🔮"
 }
 
