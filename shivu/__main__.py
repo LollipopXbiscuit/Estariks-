@@ -294,38 +294,38 @@ async def send_image(update: Update, context: CallbackContext) -> None:
     }
     
     rarity_emoji = rarity_emojis.get(character['rarity'], "✨")
+    # New spawn message format
+    caption = f"{rarity_emoji} 𝘢 𝘱𝘳𝘦𝘤𝘪𝘰𝘶𝘴 𝘴𝘰𝘶𝘭 𝘩𝘢𝘴 𝘦𝘯𝘵𝘦𝘳𝘦𝘥 𝘵𝘩𝘦 𝘤𝘩𝘢𝘵, 𝘶𝘴𝘦 /invite 𝘵𝘰 𝘵𝘢𝘬𝘦 𝘵𝘩𝘦𝘮 𝘪𝘯𝘵𝘰 𝘺𝘰𝘶𝘳 𝘤𝘩𝘢𝘮𝘣𝘦𝘳 🗼"
 
     try:
         from shivu import process_image_url
         processed_url = await process_image_url(character['img_url'])
-        
-        caption_text = f"""{rarity_emoji} A beauty has been summoned! Use /invite to add them to your harem!"""
         
         if is_video_character(character):
             try:
                 await context.bot.send_video(
                     chat_id=chat_id,
                     video=processed_url,
-                    caption=caption_text,
+                    caption=caption,
                     parse_mode='Markdown')
             except Exception as video_error:
                 LOGGER.warning(f"Failed to send as video, trying as photo: {str(video_error)}")
                 await context.bot.send_photo(
                     chat_id=chat_id,
                     photo=processed_url,
-                    caption=f"🎬 {caption_text}",
+                    caption=f"🎬 {caption}",
                     parse_mode='Markdown')
         else:
             await context.bot.send_photo(
                 chat_id=chat_id,
                 photo=processed_url,
-                caption=caption_text,
+                caption=caption,
                 parse_mode='Markdown')
     except Exception as e:
         LOGGER.error(f"Error sending character image: {str(e)}")
         await context.bot.send_message(
             chat_id=chat_id,
-            text=f"{rarity_emoji} A beauty has been summoned! Use /marry to add them to your harem!\n\n⚠️ Image could not be loaded",
+            text=f"{caption}\n\n⚠️ 𝘐𝘮𝘢𝘨𝘦 𝘤𝘰𝘶𝘭𝘥 𝘯𝘰𝘵 𝘣𝘦 𝘭𝘰𝘢𝘥𝘦𝘥",
             parse_mode='Markdown')
 
 

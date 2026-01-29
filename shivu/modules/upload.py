@@ -622,7 +622,7 @@ async def summon(update: Update, context: CallbackContext) -> None:
         rarity_emoji = rarity_styles.get(character.get('rarity', ''), "")
         
         # Create beautiful summon display with hidden character details
-        caption = f"{rarity_emoji} A beauty has been summoned! Use /invite to add them to your harem!"
+        caption = f"{rarity_emoji} 𝘢 𝘱𝘳𝘦𝘤𝘪𝘰𝘶𝘴 𝘴𝘰𝘶𝘭 𝘩𝘢𝘴 𝘦𝘯𝘵𝘦𝘳𝘦𝘥 𝘵𝘩𝘦 𝘤𝘩𝘢𝘵, 𝘶𝘴𝘦 /invite 𝘵𝘰 𝘵𝘢𝘬𝘦 𝘵𝘩𝘦𝘮 𝘪𝘯𝘵𝘰 𝘺𝘰𝘶𝘳 𝘤𝘩𝘢𝘮𝘣𝘦𝘳 🗼"
         
         # Process the image URL for compatibility and handle errors gracefully
         try:
@@ -639,7 +639,7 @@ async def summon(update: Update, context: CallbackContext) -> None:
             # If image fails to load, send text message instead
             await context.bot.send_message(
                 chat_id=chat_id,
-                text=f"{caption}\n\n⚠️ Image could not be loaded - {character['name']} from {character['anime']}",
+                text=f"{caption}\n\n⚠️ 𝘐𝘮𝘢𝘨𝘦 𝘤𝘰𝘶𝘭𝘥 𝘯𝘰𝘵 𝘣𝘦 𝘭𝘰𝘢𝘥𝘦𝘥",
                 parse_mode='HTML'
             )
         
