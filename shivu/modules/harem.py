@@ -1102,7 +1102,7 @@ async def all_rarities(update: Update, context: CallbackContext) -> None:
     if not user:
         await update.message.reply_text(
             "❌ You haven't started collecting yet!\n\n"
-            "Characters appear every 100 messages. Use /marry to collect them!",
+            "Characters appear every 100 messages. Use /invite to collect them!",
             parse_mode='HTML'
         )
         return
@@ -1111,7 +1111,7 @@ async def all_rarities(update: Update, context: CallbackContext) -> None:
     if not user_characters:
         await update.message.reply_text(
             "❌ You don't have any characters yet!\n\n"
-            "Characters appear every 100 messages. Use /marry to collect them!",
+            "Characters appear every 100 messages. Use /invite to collect them!",
             parse_mode='HTML'
         )
         return

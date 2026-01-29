@@ -625,7 +625,7 @@ async def summon(update: Update, context: CallbackContext) -> None:
         rarity_emoji = rarity_styles.get(character.get('rarity', ''), "")
         
         # Create beautiful summon display with hidden character details
-        caption = f"{rarity_emoji} A beauty has been summoned! Use /marry to add them to your harem!"
+        caption = f"{rarity_emoji} A beauty has been summoned! Use /invite to add them to your harem!"
         
         # Process the image URL for compatibility and handle errors gracefully
         try:

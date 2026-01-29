@@ -115,7 +115,7 @@ async def message_counter(update: Update, context: CallbackContext) -> None:
             "You've been temporarily blocked for sending too many messages quickly.\n"
             "🚫 **Block Duration:** 12 minutes\n\n"
             "During this time, you cannot:\n"
-            "• Claim characters (/marry)\n"
+            "• Claim characters (/invite)\n"
             "• Contribute to character spawns\n\n"
             "Please slow down your messaging!",
             parse_mode='Markdown'
@@ -302,7 +302,7 @@ async def send_image(update: Update, context: CallbackContext) -> None:
         from shivu import process_image_url
         processed_url = await process_image_url(character['img_url'])
         
-        caption_text = f"""{rarity_emoji} A beauty has been summoned! Use /marry to add them to your harem!"""
+        caption_text = f"""{rarity_emoji} A beauty has been summoned! Use /invite to add them to your harem!"""
         
         if is_video_character(character):
             try:
@@ -708,7 +708,7 @@ async def post_init(application):
         BotCommand("fav", "Set favorite character by ID"),
         BotCommand("find", "Find character by ID number"),  
         BotCommand("sorts", "Set harem sorting preference"),
-        BotCommand("marry", "Guess and collect a character"),
+        BotCommand("invite", "Guess and collect a character"),
         BotCommand("upload", "Upload new character (admin only)"),
         BotCommand("summon", "Test character summon (admin only)"),
         BotCommand("changetime", "Change spawn frequency (admin only)"),
@@ -751,7 +751,7 @@ async def run_web_server():
 
 async def run_bot():
     """Run the Telegram bot with webhooks or polling"""
-    application.add_handler(CommandHandler(["marry"], guess, block=False))
+    application.add_handler(CommandHandler(["invite"], guess, block=False))
     application.add_handler(MessageHandler(filters.ALL, message_counter, block=False))
     application.post_init = post_init
     
