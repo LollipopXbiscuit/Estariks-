@@ -32,3 +32,12 @@ python-dotenv
 python-telegram-bot==20.6
 requests
 tgcrypto
+aiohttp
+apscheduler
+cachetools
+motor
+pymongo
+pyrogram
+python-telegram-bot==20.6
+requests
+tgcrypto

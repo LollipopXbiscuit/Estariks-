@@ -1,8 +1,21 @@
 # Overview
 
-This is a Telegram character catcher bot called "Waifu & Husbando Catcher" that operates as a gamified character collection system. The bot sends anime character images to Telegram groups after every 100 messages, and users can guess the character names to add them to their personal collections. The system includes trading, gifting, favorites, and leaderboard features to create an engaging community-driven game.
+This is a Telegram character catcher bot called "Estariks Bot" that operates as a gamified character collection system. The bot sends anime character images to Telegram groups after every 100 messages, and users can guess the character names to add them to their personal collections. The system includes trading, gifting, favorites, and leaderboard features to create an engaging community-driven game.
 
 # Recent Changes
+
+## January 29, 2026
+- **Complete Rebranding**: Rebranded "Waifu & Husbando Catcher" to "Estariks Bot".
+- **Rarity Overhaul**: Replaced the entire rarity system with new tiers:
+  - 🪄 Catapult (Ultra Rare - Star equivalent)
+  - 🗡 Knight (Event/Rare - Zenith equivalent)
+  - ⚡️ Ninja
+  - 🔮 Flat (Retro equivalent)
+  - 🟡 Legendary
+  - 🟠 Rare
+  - ⚪️ Common
+- **UI Refresh**: Updated `/start` command with a new animated GIF background and custom welcome message.
+- **Spawning System**: Updated weights and interval logic to match the new rarity tiers.
 
 ## December 9, 2025
 - **Christmas Event System**: Added comprehensive event system for seasonal character spawning
