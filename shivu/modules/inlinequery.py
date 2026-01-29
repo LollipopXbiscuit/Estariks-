@@ -51,15 +51,31 @@ rarity_emojis = {
     "Retro": "🍥",
     "Star": "⭐",
     "Zenith": "🪩",
-    "Limited Edition": "🍬"
+    "Limited Edition": "🍬",
+    "Flat": "🔮"
 }
 
+# Event configuration
+events = {
+    "Football ⚽️": "⚽️",
+    "Basketball 🏀": "🏀",
+    "Tenis 🎾": "🎾",
+    "𝗣𝗢𝗟𝗜𝗖𝗘 🚨": "🚨",
+    "𝗕𝗔𝗥𝗧𝗘𝗡𝗗𝗘𝗥 🍾": "🍾",
+    "Gamer 🎮": "🎮",
+    "Christmas🎄": "🎄",
+    "Halloween 🎃": "🎃",
+    "Valentine 💝": "💝"
+}
 
-# Database indexes will be created automatically by MongoDB when needed
-# Removed manual index creation to avoid async/await issues
-
-all_characters_cache = TTLCache(maxsize=10000, ttl=36000)
-user_collection_cache = TTLCache(maxsize=10000, ttl=60)
+def get_event_name(character_name):
+    """Detect which event a character belongs to based on the emoji in their name"""
+    if not character_name:
+        return None
+    for event_name, emoji in events.items():
+        if emoji in character_name:
+            return event_name
+    return None
 
 async def inlinequery(update: Update, context: CallbackContext) -> None:
     if not update.inline_query:
@@ -160,12 +176,16 @@ async def inlinequery(update: Update, context: CallbackContext) -> None:
             # Get rarity emoji for consistent display
             rarity_emoji = rarity_emojis.get(character.get('rarity', 'Common'), "✨")
             
+            # Detect event
+            event_name = get_event_name(character.get('name', ''))
+            event_line = f"\n🌟 Event: {event_name}" if event_name else ""
+            
             # Simple caption without slow database queries
             caption = (
-                f"OwO! Check out this waifu!\n\n"
+                f"OwO! Check out this Character!\n\n"
                 f"{character['anime']}\n"
-                f"{character['id']}: {character['name']} \n"
-                f"({rarity_emoji}𝙍𝘼𝙍𝙄𝙏𝙔:  {character.get('rarity', 'Unknown').lower()})"
+                f"{character['id']} {character['name']}\n"
+                f"(𝙍𝘼𝙍𝙄𝙏𝙔: {rarity_emoji} {character.get('rarity', 'Unknown')}){event_line}"
             )
             
             # Get the correct display URL (respecting active_slot for custom characters)

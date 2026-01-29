@@ -273,6 +273,28 @@ async def sorts(update: Update, context: CallbackContext) -> None:
         return
 
 
+# Event configuration
+events = {
+    "Football ⚽️": "⚽️",
+    "Basketball 🏀": "🏀",
+    "Tenis 🎾": "🎾",
+    "𝗣𝗢𝗟𝗜𝗖𝗘 🚨": "🚨",
+    "𝗕𝗔𝗥𝗧𝗘𝗡𝗗𝗘𝗥 🍾": "🍾",
+    "Gamer 🎮": "🎮",
+    "Christmas🎄": "🎄",
+    "Halloween 🎃": "🎃",
+    "Valentine 💝": "💝"
+}
+
+def get_event_name(character_name):
+    """Detect which event a character belongs to based on the emoji in their name"""
+    if not character_name:
+        return None
+    for event_name, emoji in events.items():
+        if emoji in character_name:
+            return event_name
+    return None
+
 async def harem(update: Update, context: CallbackContext, page=0) -> None:
     if not update.effective_user:
         return
@@ -407,8 +429,12 @@ async def harem(update: Update, context: CallbackContext, page=0) -> None:
             rarity_emoji = rarity_emojis.get(character.get('rarity', 'Common'), "✨")
             count = character_counts[character['id']]
             
+            # Detect event
+            event_name = get_event_name(character.get('name', ''))
+            event_line = f"\n🌟 Event: {event_name}" if event_name else ""
+            
             # Stylish character entry format
-            harem_message += f'➥ {character["id"]}〔{rarity_emoji} 〕{character["name"]} x{count}\n'
+            harem_message += f'➥ {character["id"]}〔{rarity_emoji} 〕{character["name"]} x{count}{event_line}\n'
 
         # Add separator after each anime section
         harem_message += '⚋⚋⚋⚋⚋⚋⚋⚋⚋⚋⚋⚋⚋⚋⚋\n'
