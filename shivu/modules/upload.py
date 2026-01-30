@@ -18,8 +18,7 @@ rarity_styles = {
     "Flat": "🔮",
     "Ninja": "⚡️",
     "Knight": "🗡",
-    "Catapult": "🪄",
-    "Custom": "👾"
+    "Catapult": "🪄"
 }
 
 def get_format_text(level):
@@ -68,8 +67,6 @@ img_url character-name anime-name rarity-number
 5 = ⚡️ Ninja
 6 = 🗡 Knight
 7 = 🪄 Catapult
-8 = 🍬 Limited Edition
-9 = 👾 Custom 
 
 𝘠𝘰𝘶𝘳 𝘶𝘱𝘭𝘰𝘢𝘥𝘦𝘳 𝘭𝘦𝘷𝘦𝘭 is 3 🎐 !
 
@@ -315,8 +312,7 @@ async def upload(update: Update, context: CallbackContext) -> None:
             4: "Flat", 
             5: "Ninja", 
             6: "Knight", 
-            7: "Catapult", 
-            8: "Custom"
+            7: "Catapult"
         }
         try:
             rarity_num = int(args[3])
@@ -426,7 +422,7 @@ async def update_card(update: Update, context: CallbackContext) -> None:
         try:
             rarity = rarity_map[int(args[4])]
         except (KeyError, ValueError):
-            await update.message.reply_text('Invalid rarity (1-8).')
+            await update.message.reply_text('Invalid rarity (1-7).')
             return
 
         rarity_emoji = rarity_styles.get(rarity, "")
@@ -561,12 +557,11 @@ async def summon(update: Update, context: CallbackContext) -> None:
             "Flat": 5,
             "Ninja": 1,
             "Knight": 0.5,
-            "Catapult": 0,
-            "Custom": 0
+            "Catapult": 0
         }
         
-        # Get available rarities from database (excluding Custom which never spawn, respecting event filter)
-        event_filter = {'rarity': {'$ne': 'Custom'}}
+        # Get available rarities from database (respecting event filter)
+        event_filter = {}
         if active_event and active_event.get('event_type') == 'christmas':
             event_filter['name'] = {'$regex': '🎄'}
         available_rarities = await collection.distinct('rarity', event_filter)
