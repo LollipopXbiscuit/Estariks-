@@ -730,7 +730,7 @@ async def run_web_server():
     app.router.add_get('/health', health_check)
     app.router.add_post('/webhook', webhook_handler)
     
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 10000))
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, '0.0.0.0', port)
