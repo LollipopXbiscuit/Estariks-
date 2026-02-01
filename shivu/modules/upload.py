@@ -19,7 +19,10 @@ rarity_styles = {
     "Transcendent": "🪞",
     "Cosmic": "🌌",
     "Oblivion": "🩸",
-    "Infinity": "🎞"
+    "Infinity": "🎞",
+    "Star": "⭐",
+    "Catapult": "🪄",
+    "Knight": "🗡"
 }
 
 def get_format_text(level):
@@ -347,7 +350,19 @@ async def upload(update: Update, context: CallbackContext) -> None:
             else:
                 rarity_num = int(rarity_input)
                 
-            rarity_map = {1: "Common", 2: "Rare", 3: "Legendary", 4: "Flat", 5: "Transcendent", 6: "Cosmic", 7: "Oblivion", 8: "Infinity"}
+            rarity_map = {
+                1: "Common", 
+                2: "Rare", 
+                3: "Legendary", 
+                4: "Flat", 
+                5: "Transcendent", 
+                6: "Cosmic", 
+                7: "Oblivion", 
+                8: "Infinity",
+                9: "Star",
+                10: "Catapult",
+                11: "Knight"
+            }
             
             # Level restrictions
             if level == 1 and rarity_num > 3:
@@ -448,8 +463,17 @@ async def update_card(update: Update, context: CallbackContext) -> None:
         is_video = 'video' in validation_message.lower() or any(ext in new_img_url.lower() for ext in ['.mp4', '.mov', '.avi', '.mkv'])
 
         rarity_map = {
-            1: "Common", 2: "Rare", 3: "Legendary", 4: "Flat", 5: "Transcendent", 
-            6: "Cosmic", 7: "Oblivion", 8: "Infinity"
+            1: "Common", 
+            2: "Rare", 
+            3: "Legendary", 
+            4: "Flat", 
+            5: "Transcendent", 
+            6: "Cosmic", 
+            7: "Oblivion", 
+            8: "Infinity",
+            9: "Star",
+            10: "Catapult",
+            11: "Knight"
         }
         try:
             rarity = rarity_map[int(args[4])]

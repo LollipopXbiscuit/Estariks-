@@ -281,7 +281,10 @@ async def send_image(update: Update, context: CallbackContext) -> None:
         "Transcendent": "🪞",
         "Cosmic": "🌌",
         "Oblivion": "🩸",
-        "Infinity": "🎞"
+        "Infinity": "🎞",
+        "Star": "⭐",
+        "Catapult": "🪄",
+        "Knight": "🗡"
     }
     
     rarity_emoji = rarity_emojis.get(character['rarity'], "✨")
