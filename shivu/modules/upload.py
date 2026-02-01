@@ -26,7 +26,8 @@ def get_format_text(level):
     return """<b>Invalid Format ❌</b>
 
 <b>Example:</b>
-/upload (reply to photo/video)
+/upload 
+https://example.com/image.jpg
 Robin-❄️
 Honkai Star Rail
 4
@@ -262,43 +263,28 @@ async def upload(update: Update, context: CallbackContext) -> None:
             else:
                 lines.pop(0)
 
-        if len(lines) < 3:
-            # Fallback to old format or show error
-            args = context.args
-            if not args or len(args) < 4:
-                await update.message.reply_text(get_format_text(level), parse_mode='HTML')
-                return
-            
-            # Old format: /upload url name anime rarity
-            if not img_url:
-                img_url = args[0]
-            character_name = args[1].replace('-', ' ').title()
-            anime = args[2].replace('-', ' ').title()
-            rarity_input = args[3]
-        else:
-            # New format:
-            # Line 1: Name
-            # Line 2: Anime
-            # Line 3: Rarity
+        # Line 1: URL
+        # Line 2: Name
+        # Line 3: Anime
+        # Line 4: Rarity
+        if len(lines) >= 4:
+            img_url = lines[0]
+            character_name = lines[1].replace('-', ' ').title()
+            anime = lines[2].replace('-', ' ').title()
+            rarity_input = lines[3]
+        elif len(lines) == 3:
+            # Fallback for 3 lines (assuming media reply for URL)
             character_name = lines[0].replace('-', ' ').title()
             anime = lines[1].replace('-', ' ').title()
             rarity_input = lines[2]
-            
+        else:
+            # Show format error if not enough lines
+            await update.message.reply_text(get_format_text(level), parse_mode='HTML')
+            return
+
         if not img_url:
-             # Basic URL validation if not using media reply
-             is_valid, validation_message = validate_url(character_name) # Fallback check if first arg was meant to be URL
-             if is_valid:
-                 img_url = character_name
-                 # Re-parse if it was old format
-                 args = context.args
-                 if args and len(args) >= 4:
-                     img_url = args[0]
-                     character_name = args[1].replace('-', ' ').title()
-                     anime = args[2].replace('-', ' ').title()
-                     rarity_input = args[3]
-             else:
-                 await update.message.reply_text("❌ Please reply to a photo/video or provide a URL in the old format.")
-                 return
+            await update.message.reply_text("❌ Please provide an Image URL as the first line or reply to a photo/video.")
+            return
 
         # Map rarity name to number if needed
         rarity_name_map = {
@@ -462,7 +448,7 @@ async def update_card(update: Update, context: CallbackContext) -> None:
             from shivu import process_image_url
             # Ensure we use the correct new_img_url variable in update_card
             if new_img_url and str(new_img_url).startswith('http'):
-                processed_url = await process_image_list[0] if isinstance(new_img_url, list) else await process_image_url(new_img_url)
+                processed_url = await process_image_url(new_img_url)
             elif new_img_url:
                 processed_url = new_img_url
             else:
@@ -605,17 +591,21 @@ async def summon(update: Update, context: CallbackContext) -> None:
             event_filter['name'] = {'$regex': '🎄'}
             
         # Check if we are in the main group (Infinity and Oblivion only spawn there)
-        # Main GC ID: -1002961536913 (from user's previous preference logs)
+        # Main GC ID: -1002961536913
         MAIN_GC_ID = -1002961536913
         is_main_gc = update.effective_chat.id == MAIN_GC_ID
         
-        available_rarities = await collection.distinct('rarity', event_filter)
+        available_rarities_raw = await collection.distinct('rarity', event_filter)
+        available_rarities = [r for r in available_rarities_raw if r]
         
         if not available_rarities:
-            await update.message.reply_text('❌ No spawnable characters available!\n\nAll characters in the database appear to be Limited Edition or non-spawnable. Please upload some common characters using /upload.')
+            await update.message.reply_text('📭 No characters found matching the event criteria!')
             return
+            
+        # Weighted selection logic
+        import random
         
-        # Filter weights to only include available rarities
+        # Filter weights to only include available rarities and handle chat location
         available_weights = {}
         for rarity in available_rarities:
             if rarity in ["Infinity", "Oblivion"] and not is_main_gc:
@@ -628,14 +618,66 @@ async def summon(update: Update, context: CallbackContext) -> None:
         if not available_weights:
             await update.message.reply_text('❌ No spawnable characters available!\n\nAll available character rarities have 0 spawn weight. Please upload some common characters using /upload.')
             return
-        
-        # Use weighted random selection for rarity
-        import random
+            
         selected_rarity = random.choices(
             population=list(available_weights.keys()),
             weights=list(available_weights.values()),
             k=1
         )[0]
+        
+        # Get a random character from the selected rarity (respecting event filter)
+        match_criteria = {'rarity': selected_rarity}
+        if active_event and active_event.get('event_type') == 'christmas':
+            match_criteria['name'] = {'$regex': '🎄'}
+        
+        # Use a different variable name for the list to avoid collision with the 'random_character' function
+        random_char_list = await collection.aggregate([
+            {'$match': match_criteria},
+            {'$sample': {'size': 1}}
+        ]).to_list(length=1)
+        
+        if not random_char_list:
+            await update.message.reply_text('❌ No spawnable characters available!')
+            return
+            
+        character = random_char_list[0]
+        chat_id = update.effective_chat.id
+        
+        # Store character for marry command to find it
+        from shivu.__main__ import last_characters, first_correct_guesses, manually_summoned
+        last_characters[chat_id] = character
+        
+        # Mark as manually summoned to allow multiple marriages
+        manually_summoned[chat_id] = True
+        
+        # Clear any existing guesses for this chat
+        if chat_id in first_correct_guesses:
+            del first_correct_guesses[chat_id]
+        
+        # Get rarity emoji
+        rarity_emoji = rarity_styles.get(character.get('rarity', ''), "")
+        
+        # Create beautiful summon display with hidden character details
+        caption = f"{rarity_emoji} 𝘢 𝘱𝘳𝘦𝘤𝘪𝘰𝘶𝘴 𝘴𝘰𝘶𝘭 𝘩𝘢𝘴 𝘦𝘯𝘵𝘦𝘳𝘦𝘥 𝘵𝘩𝘦 𝘤𝘩𝘢𝘵, 𝘶𝘴𝘦 /invite 𝘵𝘰 𝘵𝘢𝘬𝘦 𝘵𝘩𝘦𝘮 𝘪𝘯𝘵𝘰 𝘺𝘰𝘶𝘳 𝘤𝘩𝘢𝘮𝘣𝘦𝘳 🗼"
+        
+        # Process the image URL for compatibility and handle errors gracefully
+        try:
+            from shivu import process_image_url
+            processed_url = await process_image_url(character['img_url'])
+            
+            await context.bot.send_photo(
+                chat_id=chat_id,
+                photo=processed_url,
+                caption=caption,
+                parse_mode='HTML'
+            )
+        except Exception as img_error:
+            # If image fails to load, send text message instead
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text=f"{caption}\n\n⚠️ 𝘐𝘮𝘢𝘨𝘦 𝘤𝘰𝘶𝘭𝘥 𝘯𝘰𝘵 𝘣𝘦 𝘭𝘰𝘢𝘥𝘦𝘥",
+                parse_mode='HTML'
+            )
         
         # Get a random character from the selected rarity (respecting event filter)
         match_criteria = {'rarity': selected_rarity}
