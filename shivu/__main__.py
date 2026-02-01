@@ -736,6 +736,42 @@ async def run_web_server():
     site = web.TCPSite(runner, '0.0.0.0', port)
     await site.start()
     LOGGER.info(f"Web server started on 0.0.0.0:{port}")
+    
+    # Self-ping task to keep the service alive
+    asyncio.create_task(keep_alive_ping())
+
+async def keep_alive_ping():
+    """Self-ping every 10 minutes to prevent idling"""
+    import aiohttp
+    
+    # Use the Replit domain if available, or just localhost
+    domain = os.environ.get('REPLIT_DEV_DOMAIN')
+    if not domain:
+        # Fallback to general domains list
+        domains = os.environ.get('REPLIT_DOMAINS', '')
+        if domains:
+            domain = domains.split(',')[0]
+            
+    if not domain:
+        LOGGER.info("No external domain found for self-ping, skipping external ping")
+        return
+
+    url = f"https://{domain}/health"
+    LOGGER.info(f"Starting self-ping task for {url}")
+    
+    while True:
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as response:
+                    if response.status == 200:
+                        LOGGER.info("Self-ping successful")
+                    else:
+                        LOGGER.warning(f"Self-ping failed with status {response.status}")
+        except Exception as e:
+            LOGGER.error(f"Error during self-ping: {e}")
+        
+        # Ping every 10 minutes (600 seconds)
+        await asyncio.sleep(600)
 
 async def run_bot():
     """Run the Telegram bot with webhooks or polling"""
