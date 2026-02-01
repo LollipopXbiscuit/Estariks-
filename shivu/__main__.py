@@ -214,10 +214,8 @@ async def send_image(update: Update, context: CallbackContext) -> None:
     # Filter rarities based on Chat ID (Oblivion and Infinity only in Main GC)
     MAIN_GC_ID = -1002961536913
     if chat_id != MAIN_GC_ID:
-        rarity_weights["Oblivion"] = 0
-        rarity_weights["Infinity"] = 0
-    
-    # Group characters by rarity
+        if "Oblivion" in rarity_weights: rarity_weights["Oblivion"] = 0
+        if "Infinity" in rarity_weights: rarity_weights["Infinity"] = 0
     
     # Group characters by rarity
     characters_by_rarity = {}
