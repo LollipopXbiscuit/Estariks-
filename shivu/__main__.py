@@ -199,33 +199,25 @@ async def send_image(update: Update, context: CallbackContext) -> None:
         LOGGER.warning("No spawnable characters available")
         return
     
-    # Define rarity weights for weighted random selection
     # Higher weight = more likely to spawn
-    # Check if we're in main GC for boosted rates
-    if chat_id == -1002961536913:
-        # Main GC: Slightly boosted Flat rates
-        rarity_weights = {
-            "Common": 100,
-            "Rare": 50,
-            "Legendary": 5,   # Above Flat - Very Rare
-            "Flat": 10,       # Base for "above flat" logic
-            "Ninja": 2,       # Above Flat - Very Rare
-            "Knight": 1,       # Above Flat - Very Rare
-            "Catapult": 0,    # Disabled
-            "Custom": 0
-        }
-    else:
-        # Other chats: Normal rates
-        rarity_weights = {
-            "Common": 100,
-            "Rare": 50,
-            "Legendary": 2,   # Above Flat - Very Rare
-            "Flat": 5,        # Base for "above flat" logic
-            "Ninja": 1,       # Above Flat - Very Rare
-            "Knight": 0.5,    # Above Flat - Very Rare
-            "Catapult": 0,    # Disabled
-            "Custom": 0
-        }
+    rarity_weights = {
+        "Common": 60,
+        "Rare": 30,
+        "Legendary": 5,
+        "Flat": 3,
+        "Transcendent": 1.5,
+        "Cosmic": 0.4,
+        "Oblivion": 0.05,
+        "Infinity": 0.01
+    }
+    
+    # Filter rarities based on Chat ID (Oblivion and Infinity only in Main GC)
+    MAIN_GC_ID = -1002961536913
+    if chat_id != MAIN_GC_ID:
+        rarity_weights["Oblivion"] = 0
+        rarity_weights["Infinity"] = 0
+    
+    # Group characters by rarity
     
     # Group characters by rarity
     characters_by_rarity = {}
@@ -288,9 +280,10 @@ async def send_image(update: Update, context: CallbackContext) -> None:
         "Rare": "🟠", 
         "Legendary": "🟡",
         "Flat": "🔮",
-        "Ninja": "⚡️",
-        "Knight": "🗡",
-        "Catapult": "🪄"
+        "Transcendent": "🪞",
+        "Cosmic": "🌌",
+        "Oblivion": "🩸",
+        "Infinity": "🎞"
     }
     
     rarity_emoji = rarity_emojis.get(character['rarity'], "✨")

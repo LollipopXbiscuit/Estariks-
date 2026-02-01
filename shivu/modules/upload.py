@@ -16,9 +16,10 @@ rarity_styles = {
     "Rare": "🟠",
     "Legendary": "🟡",
     "Flat": "🔮",
-    "Ninja": "⚡️",
-    "Knight": "🗡",
-    "Catapult": "🪄"
+    "Transcendent": "🪞",
+    "Cosmic": "🌌",
+    "Oblivion": "🩸",
+    "Infinity": "🎞"
 }
 
 def get_format_text(level):
@@ -51,8 +52,8 @@ Honkai Star Rail
 2 = 🟠 Rare
 3 = 🟡 Legendary
 4 = 🔮 Flat
-5 = ⚡️ Ninja
-6 = 🗡 Knight
+5 = 🪞 Transcendent
+6 = 🌌 Cosmic
 
 <b>Your uploader level:</b> 2 🎏"""
     else:
@@ -69,9 +70,10 @@ Honkai Star Rail
 2 = 🟠 Rare
 3 = 🟡 Legendary
 4 = 🔮 Flat
-5 = ⚡️ Ninja
-6 = 🗡 Knight
-7 = 🪄 Catapult
+5 = 🪞 Transcendent
+6 = 🌌 Cosmic
+7 = 🩸 Oblivion
+8 = 🎞 Infinity
 
 <b>Your uploader level:</b> 3 🎐"""
 
@@ -336,7 +338,7 @@ async def upload(update: Update, context: CallbackContext) -> None:
         # Map rarity name to number if needed
         rarity_name_map = {
             "common": 1, "rare": 2, "legendary": 3, "flat": 4, 
-            "ninja": 5, "knight": 6, "catapult": 7
+            "transcendent": 5, "cosmic": 6, "oblivion": 7, "infinity": 8
         }
         
         try:
@@ -345,14 +347,14 @@ async def upload(update: Update, context: CallbackContext) -> None:
             else:
                 rarity_num = int(rarity_input)
                 
-            rarity_map = {1: "Common", 2: "Rare", 3: "Legendary", 4: "Flat", 5: "Ninja", 6: "Knight", 7: "Catapult"}
+            rarity_map = {1: "Common", 2: "Rare", 3: "Legendary", 4: "Flat", 5: "Transcendent", 6: "Cosmic", 7: "Oblivion", 8: "Infinity"}
             
             # Level restrictions
             if level == 1 and rarity_num > 3:
                 await update.message.reply_text('❌ Level 1 uploaders can only upload up to Legendary rank (1-3).')
                 return
             if level == 2 and rarity_num > 6:
-                await update.message.reply_text('❌ Level 2 uploaders can only upload up to Knight rank (1-6).')
+                await update.message.reply_text('❌ Level 2 uploaders can only upload up to Cosmic rank (1-6).')
                 return
             
             rarity = rarity_map[rarity_num]
@@ -488,13 +490,13 @@ async def update_card(update: Update, context: CallbackContext) -> None:
         is_video = 'video' in validation_message.lower() or any(ext in new_img_url.lower() for ext in ['.mp4', '.mov', '.avi', '.mkv'])
 
         rarity_map = {
-            1: "Common", 2: "Rare", 3: "Legendary", 4: "Flat", 5: "Ninja", 
-            6: "Knight", 7: "Catapult"
+            1: "Common", 2: "Rare", 3: "Legendary", 4: "Flat", 5: "Transcendent", 
+            6: "Cosmic", 7: "Oblivion", 8: "Infinity"
         }
         try:
             rarity = rarity_map[int(args[4])]
         except (KeyError, ValueError):
-            await update.message.reply_text('Invalid rarity (1-7).')
+            await update.message.reply_text('Invalid rarity (1-8).')
             return
 
         rarity_emoji = rarity_styles.get(rarity, "")
@@ -623,19 +625,26 @@ async def summon(update: Update, context: CallbackContext) -> None:
         # Get characters grouped by rarity for weighted selection
         # Higher weight = more likely to spawn
         rarities_weights = {
-            "Common": 100,
-            "Rare": 50,
-            "Legendary": 2,
-            "Flat": 5,
-            "Ninja": 1,
-            "Knight": 0.5,
-            "Catapult": 0
+            "Common": 60,
+            "Rare": 30,
+            "Legendary": 5,
+            "Flat": 3,
+            "Transcendent": 1.5,
+            "Cosmic": 0.4,
+            "Oblivion": 0.05,
+            "Infinity": 0.01
         }
         
         # Get available rarities from database (respecting event filter)
         event_filter = {}
         if active_event and active_event.get('event_type') == 'christmas':
             event_filter['name'] = {'$regex': '🎄'}
+            
+        # Check if we are in the main group (Infinity and Oblivion only spawn there)
+        # Main GC ID: -1002961536913 (from user's previous preference logs)
+        MAIN_GC_ID = -1002961536913
+        is_main_gc = update.effective_chat.id == MAIN_GC_ID
+        
         available_rarities = await collection.distinct('rarity', event_filter)
         
         if not available_rarities:
@@ -643,7 +652,14 @@ async def summon(update: Update, context: CallbackContext) -> None:
             return
         
         # Filter weights to only include available rarities
-        available_weights = {rarity: rarities_weights.get(rarity, 0) for rarity in available_rarities if rarities_weights.get(rarity, 0) > 0}
+        available_weights = {}
+        for rarity in available_rarities:
+            if rarity in ["Infinity", "Oblivion"] and not is_main_gc:
+                continue
+                
+            weight = rarities_weights.get(rarity, 0)
+            if weight > 0:
+                available_weights[rarity] = weight
         
         if not available_weights:
             await update.message.reply_text('❌ No spawnable characters available!\n\nAll available character rarities have 0 spawn weight. Please upload some common characters using /upload.')

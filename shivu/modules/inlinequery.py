@@ -43,15 +43,13 @@ async def is_video_character(character, char_id=None, user_id=None):
 # Rarity emojis configuration (updated to match latest rarities)
 rarity_emojis = {
     "Common": "⚪️",
-    "Uncommon": "🟢",
-    "Rare": "🔵",
-    "Epic": "🟣",
+    "Rare": "🟠",
     "Legendary": "🟡",
-    "Mythic": "🏵",
-    "Retro": "🍥",
-    "Star": "⭐",
-    "Zenith": "🪩",
-    "Flat": "🔮"
+    "Flat": "🔮",
+    "Transcendent": "🪞",
+    "Cosmic": "🌌",
+    "Oblivion": "🩸",
+    "Infinity": "🎞"
 }
 
 # Event configuration
