@@ -642,16 +642,17 @@ async def summon(update: Update, context: CallbackContext) -> None:
         if active_event and active_event.get('event_type') == 'christmas':
             match_criteria['name'] = {'$regex': '🎄'}
         
-        random_character = await collection.aggregate([
+        # Use a different variable name for the list to avoid collision with the 'random_character' function
+        random_char_list = await collection.aggregate([
             {'$match': match_criteria},
             {'$sample': {'size': 1}}
         ]).to_list(length=1)
         
-        if not random_character:
+        if not random_char_list:
             await update.message.reply_text('❌ No spawnable characters available!')
             return
             
-        character = random_character[0]
+        character = random_char_list[0]
         chat_id = update.effective_chat.id
         
         # Store character for marry command to find it
