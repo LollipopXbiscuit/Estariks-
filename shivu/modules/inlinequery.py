@@ -56,15 +56,22 @@ rarity_emojis = {
 
 # Event configuration
 events = {
-    "Football ⚽️": "⚽️",
-    "Basketball 🏀": "🏀",
-    "Tenis 🎾": "🎾",
-    "𝗣𝗢𝗟𝗜𝗖𝗘 🚨": "🚨",
-    "𝗕𝗔𝗥𝗧𝗘𝗡𝗗𝗘𝗥 🍾": "🍾",
-    "Gamer 🎮": "🎮",
-    "Christmas🎄": "🎄",
     "Halloween 🎃": "🎃",
-    "Valentine 💝": "💝"
+    "Valentine 💝": "💝",
+    "Wedding 💍": "💍",
+    "School 🏫": "🏫",
+    "Cosplay 🎭": "🎭",
+    "Winter ❄️": "❄️",
+    "Christmas 🎄": "🎄",
+    "Summer 🏖": "🏖",
+    "Gamer 🎮": "🎮",
+    "𝗣𝗢𝗟𝗜𝗖𝗘 🚨": "🚨",
+    "Doctor 🧬": "🧬",
+    "Maid 🧹": "🧹",
+    "Idol 🎤": "🎤",
+    "Office Lady 💼": "💼",
+    "sports ⚽️": "⚽️",
+    "warrior 🛡": "🛡"
 }
 
 def get_event_name(character_name):
