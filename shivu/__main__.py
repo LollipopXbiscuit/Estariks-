@@ -286,14 +286,19 @@ async def send_image(update: Update, context: CallbackContext) -> None:
         "Catapult": "🪄",
         "Knight": "🗡"
     }
-    
+
     rarity_emoji = rarity_emojis.get(character['rarity'], "✨")
     # New spawn message format
     caption = f"{rarity_emoji} 𝘢 𝘱𝘳𝘦𝘤𝘪𝘰𝘶𝘴 𝘴𝘰𝘶𝘭 𝘩𝘢𝘴 𝘦𝘯𝘵𝘦𝘳𝘦𝘥 𝘵𝘩𝘦 𝘤𝘩𝘢𝘵, 𝘶𝘴𝘦 /invite 𝘵𝘰 𝘵𝘢𝘬𝘦 𝘵𝘩𝘦𝘮 𝘪𝘯𝘵𝘰 𝘺𝘰𝘶𝘳 𝘤𝘩𝘢𝘮𝘣𝘦𝘳 🗼"
 
     try:
         from shivu import process_image_url
-        processed_url = await process_image_url(character['img_url'])
+        img_url = character['img_url']
+        # If it's a telegram file path, use it directly as photo/video
+        if img_url.startswith('http'):
+            processed_url = await process_image_url(img_url)
+        else:
+            processed_url = img_url
         
         if is_video_character(character):
             try:

@@ -402,6 +402,12 @@ async def upload(update: Update, context: CallbackContext) -> None:
         )
         
         try:
+            from shivu import process_image_url
+            if img_url.startswith('http'):
+                processed_url = await process_image_url(img_url)
+            else:
+                processed_url = img_url
+            
             if is_video:
                 message = await context.bot.send_video(
                     chat_id=CHARA_CHANNEL_ID,
@@ -496,6 +502,12 @@ async def update_card(update: Update, context: CallbackContext) -> None:
         )
         
         try:
+            from shivu import process_image_url
+            if img_url.startswith('http'):
+                processed_url = await process_image_url(img_url)
+            else:
+                processed_url = img_url
+            
             if is_video:
                 message = await context.bot.send_video(
                     chat_id=CHARA_CHANNEL_ID,
