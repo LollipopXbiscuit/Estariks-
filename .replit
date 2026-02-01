@@ -23,11 +23,12 @@ name = "Telegram Bot"
 author = "agent"
 
 [workflows.workflow.metadata]
-outputType = "console"
+outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python -m shivu"
+args = "python3 -m shivu"
+waitForPort = 5000
 
 [deployment]
 deploymentTarget = "vm"
@@ -35,6 +36,10 @@ run = ["python3", "-m", "shivu"]
 
 [[ports]]
 localPort = 10000
+externalPort = 80
+
+[[ports]]
+localPort = 5000
 externalPort = 80
 
 [userenv]
