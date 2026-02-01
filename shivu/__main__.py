@@ -201,13 +201,13 @@ async def send_image(update: Update, context: CallbackContext) -> None:
     
     # Higher weight = more likely to spawn
     rarity_weights = {
-        "Common": 60,
-        "Rare": 30,
-        "Legendary": 5,
+        "Common": 70,
+        "Rare": 20,
+        "Legendary": 6,
         "Flat": 3,
-        "Transcendent": 1.5,
-        "Cosmic": 0.4,
-        "Oblivion": 0.05,
+        "Transcendent": 0.8,
+        "Cosmic": 0.15,
+        "Oblivion": 0.04,
         "Infinity": 0.01
     }
     
