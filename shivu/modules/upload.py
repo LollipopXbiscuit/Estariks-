@@ -23,26 +23,30 @@ rarity_styles = {
 
 def get_format_text(level):
     if level == 1:
-        return """Wrong ❌️ format...  eg. /upload Img_url muzan-kibutsuji Demon-slayer 5
+        return """<b>Invalid Format ❌</b>
 
-img_url character-name anime-name rarity-number
+<b>Example:</b>
+/upload (reply to photo/video)
+Robin-❄️
+Honkai Star Rail
+1
 
-𝘠𝘰𝘶 𝘤𝘢𝘯 𝘶𝘱𝘭𝘰𝘢𝘥 𝘵𝘩𝘦𝘴𝘦 𝘳𝘢𝘳𝘪𝘵𝘪𝘦𝘴 :
-
+<b>Rarities:</b>
 1 = ⚪️ Common
 2 = 🟠 Rare
 3 = 🟡 Legendary
 
-𝘠𝘰𝘶𝘳 𝘶𝘱𝘭𝘰𝘢𝘥𝘦𝘳 𝘭𝘦𝘷𝘦𝘭 𝘪𝘴 1 🪄 !
-
-✅ Supported: Discord CDN links, direct image/video URLs (including MP4), and other standard hosting services"""
+<b>Your uploader level:</b> 1 🪄"""
     elif level == 2:
-        return """Wrong ❌️ format...  eg. /upload Img_url muzan-kibutsuji Demon-slayer 5
+        return """<b>Invalid Format ❌</b>
 
-img_url character-name anime-name rarity-number
+<b>Example:</b>
+/upload (reply to photo/video)
+Robin-❄️
+Honkai Star Rail
+4
 
-𝘠𝘰𝘶 𝘤𝘢𝘯 𝘶𝘱𝘭𝘰𝘢𝘥 𝘵𝘩𝘦𝘴𝘦 𝘳𝘢𝘳𝘪𝘵𝘪𝘦𝘴 :
-
+<b>Rarities:</b>
 1 = ⚪️ Common
 2 = 🟠 Rare
 3 = 🟡 Legendary
@@ -50,16 +54,17 @@ img_url character-name anime-name rarity-number
 5 = ⚡️ Ninja
 6 = 🗡 Knight
 
-𝘠𝘰𝘶𝘳 𝘶𝘱𝘭𝘰𝘢𝘥𝘦𝘳 𝘭𝘦𝘷𝘦𝘭 𝘪𝘴 2 🎏 !
-
-✅ Supported: Discord CDN links, direct image/video URLs (including MP4), and other standard hosting services"""
+<b>Your uploader level:</b> 2 🎏"""
     else:
-        return """Wrong ❌️ format...  eg. /upload Img_url muzan-kibutsuji Demon-slayer 5
+        return """<b>Invalid Format ❌</b>
 
-img_url character-name anime-name rarity-number
+<b>Example:</b>
+/upload (reply to photo/video)
+Robin-❄️
+Honkai Star Rail
+4
 
-𝘠𝘰𝘶 𝘤𝘢𝘯 𝘶𝘱𝘭𝘰𝘢𝘥 𝘢𝘭𝘭 𝘳𝘢𝘳𝘪𝘵𝘪𝘦𝘴 :
-
+<b>Rarities:</b>
 1 = ⚪️ Common
 2 = 🟠 Rare
 3 = 🟡 Legendary
@@ -68,9 +73,7 @@ img_url character-name anime-name rarity-number
 6 = 🗡 Knight
 7 = 🪄 Catapult
 
-𝘠𝘰𝘶𝘳 𝘶𝘱𝘭𝘰𝘢𝘥𝘦𝘳 𝘭𝘦𝘷𝘦𝘭 is 3 🎐 !
-
-✅ Supported: Discord CDN links, direct image/video URLs (including MP4), and other standard hosting services"""
+<b>Your uploader level:</b> 3 🎐"""
 
 
 async def get_uploader_level(user_id):
@@ -257,65 +260,93 @@ async def upload(update: Update, context: CallbackContext) -> None:
         return
 
     try:
-        args = context.args
-        if not args or len(args) != 4:
+        # Check if the message is a reply to media or has media attached
+        target_message = update.message.reply_to_message if update.message.reply_to_message else update.message
+        
+        # Get image URL from media
+        img_url = None
+        is_video = False
+        
+        if target_message.photo:
+            file = await target_message.photo[-1].get_file()
+            img_url = file.file_path
+        elif target_message.video:
+            file = await target_message.video.get_file()
+            img_url = file.file_path
+            is_video = True
+        elif target_message.animation:
+            file = await target_message.animation.get_file()
+            img_url = file.file_path
+            is_video = True
+            
+        # Check for multi-line text format
+        text_to_parse = update.message.text or update.message.caption
+        if not text_to_parse:
             await update.message.reply_text(get_format_text(level), parse_mode='HTML')
             return
 
-        # Clean character name: remove special Unicode chars, replace separators with spaces
-        import unicodedata
-        character_name = args[1]
-        # Replace common Arabic diacritics and special characters with spaces
-        character_name = character_name.replace('ـ', ' ')  # Arabic Tatweel
-        character_name = character_name.replace('-', ' ')
-        character_name = character_name.replace('_', ' ')
-        # Remove combining marks and normalize Unicode
-        character_name = ''.join(c for c in unicodedata.normalize('NFKD', character_name) 
-                                 if not unicodedata.combining(c))
-        # Clean up multiple spaces
-        character_name = ' '.join(character_name.split())
-        character_name = character_name.title()
+        # Split lines and remove the command part
+        lines = [line.strip() for line in text_to_parse.split('\n') if line.strip()]
         
-        # Clean anime name similarly
-        anime = args[2]
-        anime = anime.replace('ـ', ' ')
-        anime = anime.replace('-', ' ')
-        anime = anime.replace('_', ' ')
-        anime = ''.join(c for c in unicodedata.normalize('NFKD', anime) 
-                       if not unicodedata.combining(c))
-        anime = ' '.join(anime.split())
-        anime = anime.title()
+        # Remove /upload command from first line
+        if lines[0].lower().startswith('/upload'):
+            first_line = lines[0][7:].strip()
+            if first_line:
+                lines[0] = first_line
+            else:
+                lines.pop(0)
 
-        # Validate URL with enhanced Discord CDN support
-        is_valid, validation_message = validate_url(args[0])
-        # If the error is "URL does not appear to be an image or video", we check for local links
-        if not is_valid and "does not appear to be an image or video" in validation_message:
-             if is_discord_cdn_url(args[0]):
-                 is_valid = True
-                 validation_message = "Media link (validation bypassed)"
+        if len(lines) < 3:
+            # Fallback to old format or show error
+            args = context.args
+            if not args or len(args) < 4:
+                await update.message.reply_text(get_format_text(level), parse_mode='HTML')
+                return
+            
+            # Old format: /upload url name anime rarity
+            img_url = args[0]
+            character_name = args[1].replace('-', ' ').title()
+            anime = args[2].replace('-', ' ').title()
+            rarity_input = args[3]
+        else:
+            # New format:
+            # Line 1: Name
+            # Line 2: Anime
+            # Line 3: Rarity
+            character_name = lines[0].replace('-', ' ').title()
+            anime = lines[1].replace('-', ' ').title()
+            rarity_input = lines[2]
+            
+        if not img_url:
+             # Basic URL validation if not using media reply
+             is_valid, validation_message = validate_url(character_name) # Fallback check if first arg was meant to be URL
+             if is_valid:
+                 img_url = character_name
+                 # Re-parse if it was old format
+                 args = context.args
+                 if args and len(args) >= 4:
+                     img_url = args[0]
+                     character_name = args[1].replace('-', ' ').title()
+                     anime = args[2].replace('-', ' ').title()
+                     rarity_input = args[3]
+             else:
+                 await update.message.reply_text("❌ Please reply to a photo/video or provide a URL in the old format.")
+                 return
 
-        if not is_valid:
-            await update.message.reply_text(f'Invalid URL: {validation_message}')
-            return
-        
-        # Check if it's a video based on validation message or URL extension
-        is_video = 'video' in validation_message.lower() or any(ext in args[0].lower() for ext in ['.mp4', '.mov', '.avi', '.mkv'])
-        
-        # If it's a Discord CDN link, inform the user
-        if is_discord_cdn_url(args[0]):
-            await update.message.reply_text('✅ Discord CDN link detected - processing...', reply_to_message_id=update.message.message_id)
-
-        rarity_map = {
-            1: "Common", 
-            2: "Rare", 
-            3: "Legendary", 
-            4: "Flat", 
-            5: "Ninja", 
-            6: "Knight", 
-            7: "Catapult"
+        # Map rarity name to number if needed
+        rarity_name_map = {
+            "common": 1, "rare": 2, "legendary": 3, "flat": 4, 
+            "ninja": 5, "knight": 6, "catapult": 7
         }
+        
         try:
-            rarity_num = int(args[3])
+            if rarity_input.lower() in rarity_name_map:
+                rarity_num = rarity_name_map[rarity_input.lower()]
+            else:
+                rarity_num = int(rarity_input)
+                
+            rarity_map = {1: "Common", 2: "Rare", 3: "Legendary", 4: "Flat", 5: "Ninja", 6: "Knight", 7: "Catapult"}
+            
             # Level restrictions
             if level == 1 and rarity_num > 3:
                 await update.message.reply_text('❌ Level 1 uploaders can only upload up to Legendary rank (1-3).')
@@ -330,14 +361,57 @@ async def upload(update: Update, context: CallbackContext) -> None:
             return
 
         id = str(await get_next_sequence_number('character_id'))
-
         character = {
-            'img_url': args[0],
+            'img_url': img_url,
             'name': character_name,
             'anime': anime,
             'rarity': rarity,
             'id': id
         }
+        
+        # Add to character channel and database
+        rarity_emoji = rarity_styles.get(rarity, "")
+        from shivu import process_image_url
+        processed_url = await process_image_url(img_url)
+        
+        caption = (
+            f"✨ <b>{character_name}</b> ✨\n"
+            f"🎌 <i>{anime}</i>\n"
+            f"━━━━━━━━━━━━━━━━\n"
+            f"{rarity_emoji} <b>{rarity}</b>\n"
+            f"🆔 <b>ID:</b> #{id}\n"
+            f"━━━━━━━━━━━━━━━━\n"
+            f"📤 Added by <a href='tg://user?id={update.effective_user.id}'>{update.effective_user.first_name}</a>"
+        )
+        
+        try:
+            if is_video:
+                message = await context.bot.send_video(
+                    chat_id=CHARA_CHANNEL_ID,
+                    video=processed_url,
+                    caption=caption,
+                    parse_mode='HTML'
+                )
+            else:
+                message = await context.bot.send_photo(
+                    chat_id=CHARA_CHANNEL_ID,
+                    photo=processed_url,
+                    caption=caption,
+                    parse_mode='HTML'
+                )
+            character['message_id'] = message.message_id
+            await collection.insert_one(character)
+            await update.message.reply_text('✅ CHARACTER ADDED SUCCESSFULLY!')
+        except Exception as e:
+            await collection.insert_one(character)
+            await update.message.reply_text(f"✅ Character Added to DB but failed to send to channel: {str(e)}")
+        
+    except Exception as e:
+        import traceback
+        LOGGER.error(f"Upload error: {traceback.format_exc()}")
+        await update.message.reply_text(f'❌ Character Upload Unsuccessful. Error: {str(e)}')
+
+async def update_card(update: Update, context: CallbackContext) -> None:
 
         try:
             rarity_emoji = rarity_styles.get(rarity, "")
