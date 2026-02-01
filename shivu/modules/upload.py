@@ -289,7 +289,7 @@ async def upload(update: Update, context: CallbackContext) -> None:
         lines = [line.strip() for line in text_to_parse.split('\n') if line.strip()]
         
         # Remove /upload command from first line
-        if lines[0].lower().startswith('/upload'):
+        if lines and lines[0].lower().startswith('/upload'):
             first_line = lines[0][7:].strip()
             if first_line:
                 lines[0] = first_line
@@ -407,8 +407,6 @@ async def upload(update: Update, context: CallbackContext) -> None:
             await update.message.reply_text(f"✅ Character Added to DB but failed to send to channel: {str(e)}")
         
     except Exception as e:
-        import traceback
-        LOGGER.error(f"Upload error: {traceback.format_exc()}")
         await update.message.reply_text(f'❌ Character Upload Unsuccessful. Error: {str(e)}')
 
 async def update_card(update: Update, context: CallbackContext) -> None:
