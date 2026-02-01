@@ -182,9 +182,9 @@ async def send_image(update: Update, context: CallbackContext) -> None:
     # Check for active event
     active_event = await event_settings_collection.find_one({'active': True})
     
-    # Get spawnable characters (exclude Catapult as it has its own spawn function, and Custom which never spawns)
+    # Get spawnable characters (exclude Custom which never spawns)
     filter_criteria = {
-        'rarity': {'$nin': ['Catapult', 'Custom']},
+        'rarity': {'$in': ['Common', 'Rare', 'Legendary', 'Flat', 'Transcendent', 'Cosmic', 'Oblivion', 'Infinity']},
         'id': {'$nin': locked_character_ids}
     }
     
@@ -281,10 +281,7 @@ async def send_image(update: Update, context: CallbackContext) -> None:
         "Transcendent": "🪞",
         "Cosmic": "🌌",
         "Oblivion": "🩸",
-        "Infinity": "🎞",
-        "Star": "⭐",
-        "Catapult": "🪄",
-        "Knight": "🗡"
+        "Infinity": "🎞"
     }
 
     rarity_emoji = rarity_emojis.get(character['rarity'], "✨")

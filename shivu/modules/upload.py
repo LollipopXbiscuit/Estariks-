@@ -19,48 +19,11 @@ rarity_styles = {
     "Transcendent": "🪞",
     "Cosmic": "🌌",
     "Oblivion": "🩸",
-    "Infinity": "🎞",
-    "Star": "⭐",
-    "Catapult": "🪄",
-    "Knight": "🗡"
+    "Infinity": "🎞"
 }
 
 def get_format_text(level):
-    if level == 1:
-        return """<b>Invalid Format ❌</b>
-
-<b>Example:</b>
-/upload (reply to photo/video)
-Robin-❄️
-Honkai Star Rail
-1
-
-<b>Rarities:</b>
-1 = ⚪️ Common
-2 = 🟠 Rare
-3 = 🟡 Legendary
-
-<b>Your uploader level:</b> 1 🪄"""
-    elif level == 2:
-        return """<b>Invalid Format ❌</b>
-
-<b>Example:</b>
-/upload (reply to photo/video)
-Robin-❄️
-Honkai Star Rail
-4
-
-<b>Rarities:</b>
-1 = ⚪️ Common
-2 = 🟠 Rare
-3 = 🟡 Legendary
-4 = 🔮 Flat
-5 = 🪞 Transcendent
-6 = 🌌 Cosmic
-
-<b>Your uploader level:</b> 2 🎏"""
-    else:
-        return """<b>Invalid Format ❌</b>
+    return """<b>Invalid Format ❌</b>
 
 <b>Example:</b>
 /upload (reply to photo/video)
@@ -76,9 +39,7 @@ Honkai Star Rail
 5 = 🪞 Transcendent
 6 = 🌌 Cosmic
 7 = 🩸 Oblivion
-8 = 🎞 Infinity
-
-<b>Your uploader level:</b> 3 🎐"""
+8 = 🎞 Infinity"""
 
 
 async def get_uploader_level(user_id):
@@ -358,10 +319,7 @@ async def upload(update: Update, context: CallbackContext) -> None:
                 5: "Transcendent", 
                 6: "Cosmic", 
                 7: "Oblivion", 
-                8: "Infinity",
-                9: "Star",
-                10: "Catapult",
-                11: "Knight"
+                8: "Infinity"
             }
             
             # Level restrictions
@@ -476,10 +434,7 @@ async def update_card(update: Update, context: CallbackContext) -> None:
             5: "Transcendent", 
             6: "Cosmic", 
             7: "Oblivion", 
-            8: "Infinity",
-            9: "Star",
-            10: "Catapult",
-            11: "Knight"
+            8: "Infinity"
         }
         try:
             rarity = rarity_map[int(args[4])]
@@ -503,10 +458,10 @@ async def update_card(update: Update, context: CallbackContext) -> None:
         
         try:
             from shivu import process_image_url
-            if img_url.startswith('http'):
-                processed_url = await process_image_url(img_url)
+            if new_img_url.startswith('http'):
+                processed_url = await process_image_url(new_img_url)
             else:
-                processed_url = img_url
+                processed_url = new_img_url
             
             if is_video:
                 message = await context.bot.send_video(
