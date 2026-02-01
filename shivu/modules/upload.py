@@ -193,7 +193,7 @@ def validate_url(url):
 
 
 
-async def can_upload(user_id):
+async def can_upload_user(user_id):
     """Check if user has upload permissions (sudo_users, uploading_users env var, or dynamic uploading_users)"""
     user_id_str = str(user_id)
     
@@ -270,7 +270,8 @@ async def upload(update: Update, context: CallbackContext) -> None:
                 return
             
             # Old format: /upload url name anime rarity
-            img_url = args[0]
+            if not img_url:
+                img_url = args[0]
             character_name = args[1].replace('-', ' ').title()
             anime = args[2].replace('-', ' ').title()
             rarity_input = args[3]
@@ -346,25 +347,25 @@ async def upload(update: Update, context: CallbackContext) -> None:
         
         # Add to character channel and database
         rarity_emoji = rarity_styles.get(rarity, "")
-        from shivu import process_image_url
-        processed_url = await process_image_url(img_url)
-        
-        caption = (
-            f"✨ <b>{character_name}</b> ✨\n"
-            f"🎌 <i>{anime}</i>\n"
-            f"━━━━━━━━━━━━━━━━\n"
-            f"{rarity_emoji} <b>{rarity}</b>\n"
-            f"🆔 <b>ID:</b> #{id}\n"
-            f"━━━━━━━━━━━━━━━━\n"
-            f"📤 Added by <a href='tg://user?id={update.effective_user.id}'>{update.effective_user.first_name}</a>"
-        )
-        
         try:
             from shivu import process_image_url
-            if img_url.startswith('http'):
+            # Always ensure we use the correct img_url variable
+            if img_url and str(img_url).startswith('http'):
                 processed_url = await process_image_url(img_url)
-            else:
+            elif img_url:
                 processed_url = img_url
+            else:
+                raise ValueError("Image URL is empty")
+            
+            caption = (
+                f"✨ <b>{character_name}</b> ✨\n"
+                f"🎌 <i>{anime}</i>\n"
+                f"━━━━━━━━━━━━━━━━\n"
+                f"{rarity_emoji} <b>{rarity}</b>\n"
+                f"🆔 <b>ID:</b> #{id}\n"
+                f"━━━━━━━━━━━━━━━━\n"
+                f"📤 Added by <a href='tg://user?id={update.effective_user.id}'>{update.effective_user.first_name}</a>"
+            )
             
             if is_video:
                 message = await context.bot.send_video(
@@ -384,6 +385,7 @@ async def upload(update: Update, context: CallbackContext) -> None:
             await collection.insert_one(character)
             await update.message.reply_text('✅ CHARACTER ADDED SUCCESSFULLY!')
         except Exception as e:
+            # If sending fails, we still insert into DB but notify the user
             await collection.insert_one(character)
             await update.message.reply_text(f"✅ Character Added to DB but failed to send to channel: {str(e)}")
         
@@ -394,7 +396,7 @@ async def update_card(update: Update, context: CallbackContext) -> None:
     if not update.effective_user or not update.message:
         return
         
-    if not await can_upload(update.effective_user.id):
+    if not await can_upload_user(update.effective_user.id):
         await update.message.reply_text('Ask My Owner or authorized uploader...')
         return
 
@@ -458,10 +460,23 @@ async def update_card(update: Update, context: CallbackContext) -> None:
         
         try:
             from shivu import process_image_url
-            if new_img_url.startswith('http'):
-                processed_url = await process_image_url(new_img_url)
-            else:
+            # Ensure we use the correct new_img_url variable in update_card
+            if new_img_url and str(new_img_url).startswith('http'):
+                processed_url = await process_image_list[0] if isinstance(new_img_url, list) else await process_image_url(new_img_url)
+            elif new_img_url:
                 processed_url = new_img_url
+            else:
+                raise ValueError("New Image URL is empty")
+            
+            caption = (
+                f"✨ <b>{character_name}</b> (UPDATED) ✨\n"
+                f"🎌 <i>{anime}</i>\n"
+                f"━━━━━━━━━━━━━━━━\n"
+                f"{rarity_emoji} <b>{rarity}</b>\n"
+                f"🆔 <b>ID:</b> #{character_id}\n"
+                f"━━━━━━━━━━━━━━━━\n"
+                f"📤 Updated by <a href='tg://user?id={update.effective_user.id}'>{update.effective_user.first_name}</a>"
+            )
             
             if is_video:
                 message = await context.bot.send_video(
