@@ -665,7 +665,7 @@ async def give_ptb(update: Update, context: CallbackContext):
                 "📝 **Give Character**\n\n"
                 "Usage when replying: `/give <character_id>`\n"
                 "Example: `/give 1`",
-                parse_mode='Markdown'
+                parse_mode='HTML'
             )
             return
             
@@ -681,7 +681,7 @@ async def give_ptb(update: Update, context: CallbackContext):
                 "Usage: `/give <character_id> <user_id>`\n"
                 "Example: `/give 1 123456789`\n\n"
                 "Or reply to a user: `/give <character_id>`",
-                parse_mode='Markdown'
+                parse_mode='HTML'
             )
             return
             
@@ -729,7 +729,7 @@ async def give_ptb(update: Update, context: CallbackContext):
             f"📺 From: **{character['anime']}**\n"
             f"👤 Given to: User ID `{receiver_id}`\n"
             f"🆔 Character ID: `{character['id']}`",
-            parse_mode='Markdown'
+            parse_mode='HTML'
         )
 
 

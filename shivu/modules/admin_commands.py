@@ -25,7 +25,7 @@ async def lockspawn(client, message):
             "`/lockspawn [character_id]`\n\n"
             "**Example:** `/lockspawn 123`\n\n"
             "This will prevent the character from appearing in spawns.",
-            parse_mode=enums.ParseMode.MARKDOWN
+            parse_mode=enums.ParseMode.HTML
         )
         return
     
@@ -97,7 +97,7 @@ async def unlockspawn(client, message):
             "`/unlockspawn [character_id]`\n\n"
             "**Example:** `/unlockspawn 123`\n\n"
             "This will allow the character to appear in spawns again.",
-            parse_mode=enums.ParseMode.MARKDOWN
+            parse_mode=enums.ParseMode.HTML
         )
         return
     
@@ -130,7 +130,7 @@ async def lockedspawns(client, message, page=0):
         await message.reply_text(
             "🔓 **No Locked Spawns**\n\n"
             "There are currently no characters locked from spawning.",
-            parse_mode='markdown'
+            parse_mode='HTML'
         )
         return
     
@@ -190,7 +190,7 @@ async def lockedspawns(client, message, page=0):
         if buttons:
             keyboard = InlineKeyboardMarkup([buttons])
     
-    await message.reply_text(message_text, parse_mode=enums.ParseMode.MARKDOWN, reply_markup=keyboard)
+    await message.reply_text(message_text, parse_mode=enums.ParseMode.HTML, reply_markup=keyboard)
 
 @shivuu.on_callback_query(filters.create(lambda _, __, query: query.data.startswith("lockedspawns:")))
 async def lockedspawns_callback(client, callback_query):
@@ -261,7 +261,7 @@ async def lockedspawns_callback(client, callback_query):
             if buttons:
                 keyboard = InlineKeyboardMarkup([buttons])
         
-        await callback_query.edit_message_text(message_text, parse_mode=enums.ParseMode.MARKDOWN, reply_markup=keyboard)
+        await callback_query.edit_message_text(message_text, parse_mode=enums.ParseMode.HTML, reply_markup=keyboard)
         await callback_query.answer()
         
     except Exception as e:
@@ -284,7 +284,7 @@ async def rarity(client, message):
         "👑 𝘈𝘱𝘦𝘹 : 0.01% 𝘤𝘩𝘢𝘯𝘤𝘦"
     )
   
-    await message.reply_text(message_text, parse_mode=enums.ParseMode.MARKDOWN)
+    await message.reply_text(message_text, parse_mode=enums.ParseMode.HTML)
 
 
 # python-telegram-bot versions (work with webhooks)
@@ -302,7 +302,7 @@ async def lockspawn_ptb(update: Update, context: CallbackContext):
             "`/lockspawn [character_id]`\n\n"
             "**Example:** `/lockspawn 123`\n\n"
             "This will prevent the character from appearing in spawns.",
-            parse_mode='Markdown'
+            parse_mode='HTML'
         )
         return
     
@@ -364,7 +364,7 @@ async def unlockspawn_ptb(update: Update, context: CallbackContext):
             "`/unlockspawn [character_id]`\n\n"
             "**Example:** `/unlockspawn 123`\n\n"
             "This will allow the character to appear in spawns again.",
-            parse_mode='Markdown'
+            parse_mode='HTML'
         )
         return
     
@@ -394,7 +394,7 @@ async def lockedspawns_ptb(update: Update, context: CallbackContext, page=0):
         await update.message.reply_text(
             "🔓 **No Locked Spawns**\n\n"
             "There are currently no characters locked from spawning.",
-            parse_mode='Markdown'
+            parse_mode='HTML'
         )
         return
     
@@ -443,7 +443,7 @@ async def lockedspawns_ptb(update: Update, context: CallbackContext, page=0):
         if buttons:
             keyboard = InlineKeyboardMarkup([buttons])
     
-    await update.message.reply_text(message_text, parse_mode='Markdown', reply_markup=keyboard)
+    await update.message.reply_text(message_text, parse_mode='HTML', reply_markup=keyboard)
 
 
 async def lockedspawns_callback_ptb(update: Update, context: CallbackContext):
@@ -504,7 +504,7 @@ async def lockedspawns_callback_ptb(update: Update, context: CallbackContext):
             if buttons:
                 keyboard = InlineKeyboardMarkup([buttons])
         
-        await query.edit_message_text(message_text, parse_mode='Markdown', reply_markup=keyboard)
+        await query.edit_message_text(message_text, parse_mode='HTML', reply_markup=keyboard)
         await query.answer()
         
     except Exception as e:
@@ -527,7 +527,7 @@ async def rarity_ptb(update: Update, context: CallbackContext):
         "👑 𝘈𝘱𝘦𝘹 : 0.01% 𝘤𝘩𝘢𝘯𝘤𝘦"
     )
   
-    await update.message.reply_text(message_text, parse_mode='Markdown')
+    await update.message.reply_text(message_text, parse_mode='HTML')
 
 
 # ============== BROADCAST COMMAND ==============
@@ -551,7 +551,7 @@ async def broadcast(client, message):
             "**Or:** Reply to any message with `/broadcast`\n\n"
             "**Example:**\n"
             "`/broadcast Hello everyone! New update is here!`",
-            parse_mode=enums.ParseMode.MARKDOWN
+            parse_mode=enums.ParseMode.HTML
         )
         return
     
@@ -685,7 +685,7 @@ async def broadcast_ptb(update: Update, context: CallbackContext) -> None:
             "**Or:** Reply to any message with `/broadcast`\n\n"
             "**Example:**\n"
             "`/broadcast Hello everyone! New update is here!`",
-            parse_mode='Markdown'
+            parse_mode='HTML'
         )
         return
     
@@ -738,7 +738,7 @@ async def broadcast_ptb(update: Update, context: CallbackContext) -> None:
                         f"📡 **Broadcasting...**\n\n"
                         f"👥 Users: {success_users}/{total_users} sent\n"
                         f"❌ Failed: {failed_users}",
-                        parse_mode='Markdown'
+                        parse_mode='HTML'
                     )
                     
                 await asyncio.sleep(0.05)
@@ -770,7 +770,7 @@ async def broadcast_ptb(update: Update, context: CallbackContext) -> None:
                         f"👥 Users: {success_users} sent, {failed_users} failed\n"
                         f"💬 Groups: {success_groups}/{total_groups} sent\n"
                         f"❌ Failed: {failed_groups}",
-                        parse_mode='Markdown'
+                        parse_mode='HTML'
                     )
                     
                 await asyncio.sleep(0.1)
@@ -796,7 +796,7 @@ async def broadcast_ptb(update: Update, context: CallbackContext) -> None:
         f"   ✓ Sent: {success_groups}\n"
         f"   ✗ Failed: {failed_groups}\n\n"
         f"📊 **Total:** {success_users + success_groups} messages sent",
-        parse_mode='Markdown'
+        parse_mode='HTML'
     )
 
 
@@ -830,7 +830,7 @@ async def bonk(client, message):
             "• Reply to a user's message with `/bonk`\n"
             "• Or use `/bonk [user_id]`\n\n"
             "This will ban the user from using the bot for 2 weeks.",
-            parse_mode=enums.ParseMode.MARKDOWN
+            parse_mode=enums.ParseMode.HTML
         )
         return
     
@@ -868,7 +868,7 @@ async def bonk(client, message):
         f"⏰ **Duration:** 2 weeks\n"
         f"📅 **Unbanned on:** {unban_date.strftime('%Y-%m-%d %H:%M')}\n\n"
         f"They won't be able to use the bot until then!",
-        parse_mode=enums.ParseMode.MARKDOWN
+        parse_mode=enums.ParseMode.HTML
     )
 
 
@@ -900,7 +900,7 @@ async def unbonk(client, message):
             "• Reply to a user's message with `/unbonk`\n"
             "• Or use `/unbonk [user_id]`\n\n"
             "This will remove the ban and allow them to use the bot again.",
-            parse_mode=enums.ParseMode.MARKDOWN
+            parse_mode=enums.ParseMode.HTML
         )
         return
     
@@ -917,7 +917,7 @@ async def unbonk(client, message):
         f"✨ **UNBONKED!**\n\n"
         f"👤 **User:** {target_name} (`{target_id}`)\n\n"
         f"They can now use the bot again!",
-        parse_mode=enums.ParseMode.MARKDOWN
+        parse_mode=enums.ParseMode.HTML
     )
 
 
@@ -948,7 +948,7 @@ async def bonk_ptb(update: Update, context: CallbackContext) -> None:
             "• Reply to a user's message with `/bonk`\n"
             "• Or use `/bonk [user_id]`\n\n"
             "This will ban the user from using the bot for 2 weeks.",
-            parse_mode='Markdown'
+            parse_mode='HTML'
         )
         return
     
@@ -985,8 +985,8 @@ async def bonk_ptb(update: Update, context: CallbackContext) -> None:
         f"👤 **User:** {target_name} (`{target_id}`)\n"
         f"⏰ **Duration:** 2 weeks\n"
         f"📅 **Unbanned on:** {unban_date.strftime('%Y-%m-%d %H:%M')}\n\n"
-        f"They won't be able to use the bot until then!",
-        parse_mode='Markdown'
+         f"They won't be able to use the bot until then!",
+         parse_mode='HTML'
     )
 
 
@@ -1017,7 +1017,7 @@ async def unbonk_ptb(update: Update, context: CallbackContext) -> None:
             "• Reply to a user's message with `/unbonk`\n"
             "• Or use `/unbonk [user_id]`\n\n"
             "This will remove the ban and allow them to use the bot again.",
-            parse_mode='Markdown'
+            parse_mode='HTML'
         )
         return
     
@@ -1033,8 +1033,8 @@ async def unbonk_ptb(update: Update, context: CallbackContext) -> None:
     await update.message.reply_text(
         f"✨ **UNBONKED!**\n\n"
         f"👤 **User:** {target_name} (`{target_id}`)\n\n"
-        f"They can now use the bot again!",
-        parse_mode='Markdown'
+         f"They can now use the bot again!",
+         parse_mode='HTML'
     )
 
 
@@ -1084,7 +1084,7 @@ async def resetm(client, message):
             "• Reply to a user's message with `/resetm`\n"
             "• Or use `/resetm [user_id]`\n\n"
             "This will reset their daily marriage limit to 0/30.",
-            parse_mode=enums.ParseMode.MARKDOWN
+            parse_mode=enums.ParseMode.HTML
         )
         return
     
@@ -1105,7 +1105,7 @@ async def resetm(client, message):
         f"👤 **User:** {target_name} (`{target_id}`)\n"
         f"📊 **Status:** Set to 0/30\n\n"
         f"They can now marry up to 30 characters again!",
-        parse_mode=enums.ParseMode.MARKDOWN
+            parse_mode=enums.ParseMode.HTML
     )
 
 
@@ -1136,7 +1136,7 @@ async def resetm_ptb(update: Update, context: CallbackContext) -> None:
             "• Reply to a user's message with `/resetm`\n"
             "• Or use `/resetm [user_id]`\n\n"
             "This will reset their daily marriage limit to 0/30.",
-            parse_mode='Markdown'
+            parse_mode='HTML'
         )
         return
     
@@ -1157,7 +1157,7 @@ async def resetm_ptb(update: Update, context: CallbackContext) -> None:
         f"👤 **User:** {target_name} (`{target_id}`)\n"
         f"📊 **Status:** Set to 0/30\n\n"
         f"They can now marry up to 30 characters again!",
-        parse_mode='Markdown'
+        parse_mode='HTML'
     )
 
 

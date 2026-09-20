@@ -119,7 +119,7 @@ async def message_counter(update: Update, context: CallbackContext) -> None:
             "• Claim characters (/invite)\n"
             "• Contribute to character spawns\n\n"
             "Please slow down your messaging!",
-            parse_mode='Markdown'
+            parse_mode='HTML'
         )
         return
     
@@ -304,26 +304,26 @@ async def send_image(update: Update, context: CallbackContext) -> None:
                     chat_id=chat_id,
                     video=processed_url,
                     caption=caption,
-                    parse_mode='Markdown')
+                    parse_mode='HTML')
             except Exception as video_error:
                 LOGGER.warning(f"Failed to send as video, trying as photo: {str(video_error)}")
                 await context.bot.send_photo(
                     chat_id=chat_id,
                     photo=processed_url,
                     caption=f"🎬 {caption}",
-                    parse_mode='Markdown')
+                    parse_mode='HTML')
         else:
             await context.bot.send_photo(
                 chat_id=chat_id,
                 photo=processed_url,
                 caption=caption,
-                parse_mode='Markdown')
+                parse_mode='HTML')
     except Exception as e:
         LOGGER.error(f"Error sending character image: {str(e)}")
         await context.bot.send_message(
             chat_id=chat_id,
             text=f"{caption}\n\n⚠️ 𝘐𝘮𝘢𝘨𝘦 𝘤𝘰𝘶𝘭𝘥 𝘯𝘰𝘵 𝘣𝘦 𝘭𝘰𝘢𝘥𝘦𝘥",
-            parse_mode='Markdown')
+            parse_mode='HTML')
 
 
 async def send_star_character(update: Update, context: CallbackContext) -> None:
@@ -392,26 +392,26 @@ async def send_star_character(update: Update, context: CallbackContext) -> None:
                     chat_id=chat_id,
                     video=processed_url,
                     caption=caption_text,
-                    parse_mode='Markdown')
+                    parse_mode='HTML')
             except Exception as video_error:
                 LOGGER.warning(f"Failed to send star video, trying as photo: {str(video_error)}")
                 await context.bot.send_photo(
                     chat_id=chat_id,
                     photo=processed_url,
                     caption=f"🎬 {caption_text}",
-                    parse_mode='Markdown')
+                    parse_mode='HTML')
         else:
             await context.bot.send_photo(
                 chat_id=chat_id,
                 photo=processed_url,
                 caption=caption_text,
-                parse_mode='Markdown')
+                parse_mode='HTML')
     except Exception as e:
         LOGGER.error(f"Error sending star character image: {str(e)}")
         await context.bot.send_message(
             chat_id=chat_id,
             text=f"🪄 A magical CATAPULT beauty has appeared! Use /marry to add them to your harem!\n\n⚠️ Image could not be loaded",
-            parse_mode='Markdown')
+            parse_mode='HTML')
 
 
 async def send_zenith_event_character(update: Update, context: CallbackContext) -> None:
@@ -475,26 +475,26 @@ async def send_zenith_event_character(update: Update, context: CallbackContext) 
                     chat_id=chat_id,
                     video=processed_url,
                     caption=caption_text,
-                    parse_mode='Markdown')
+                    parse_mode='HTML')
             except Exception as video_error:
                 LOGGER.warning(f"Failed to send zenith video, trying as photo: {str(video_error)}")
                 await context.bot.send_photo(
                     chat_id=chat_id,
                     photo=processed_url,
                     caption=f"🎬 {caption_text}",
-                    parse_mode='Markdown')
+                    parse_mode='HTML')
         else:
             await context.bot.send_photo(
                 chat_id=chat_id,
                 photo=processed_url,
                 caption=caption_text,
-                parse_mode='Markdown')
+                parse_mode='HTML')
     except Exception as e:
         LOGGER.error(f"Error sending zenith event character image: {str(e)}")
         await context.bot.send_message(
             chat_id=chat_id,
             text=f"🗡🎄 A valiant KNIGHT Christmas beauty has appeared! Use /marry to add them to your harem!\n\n⚠️ Image could not be loaded",
-            parse_mode='Markdown')
+            parse_mode='HTML')
 
 
 async def guess(update: Update, context: CallbackContext) -> None:
@@ -527,7 +527,7 @@ async def guess(update: Update, context: CallbackContext) -> None:
             f"⏰ **Time remaining:** {minutes}m {seconds}s\n\n"
             f"You cannot claim characters while blocked for spam.\n"
             f"Please wait for your block to expire.",
-            parse_mode='Markdown'
+            parse_mode='HTML'
         )
         return
 
@@ -546,7 +546,7 @@ async def guess(update: Update, context: CallbackContext) -> None:
                 f"❌ You've already married **{today_count}/30** characters today.\n\n"
                 f"⏰ **Reset time:** Tomorrow at 00:00 UTC\n\n"
                 f"Come back tomorrow to continue building your harem!",
-                parse_mode='Markdown'
+                parse_mode='HTML'
             )
             return
 

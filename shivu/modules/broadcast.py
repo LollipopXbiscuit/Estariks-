@@ -31,28 +31,28 @@ async def broadcast(update: Update, context: CallbackContext) -> None:
                     chat_id=chat_id,
                     animation=message_to_broadcast.animation.file_id,
                     caption=message_to_broadcast.caption,
-                    parse_mode=message_to_broadcast.parse_mode
+                    parse_mode='HTML'
                 )
             elif message_to_broadcast.photo:  # Photo
                 await context.bot.send_photo(
                     chat_id=chat_id,
                     photo=message_to_broadcast.photo[-1].file_id,
                     caption=message_to_broadcast.caption,
-                    parse_mode=message_to_broadcast.parse_mode
+                    parse_mode='HTML'
                 )
             elif message_to_broadcast.video:  # Video
                 await context.bot.send_video(
                     chat_id=chat_id,
                     video=message_to_broadcast.video.file_id,
                     caption=message_to_broadcast.caption,
-                    parse_mode=message_to_broadcast.parse_mode
+                    parse_mode='HTML'
                 )
             elif message_to_broadcast.document:  # Document
                 await context.bot.send_document(
                     chat_id=chat_id,
                     document=message_to_broadcast.document.file_id,
                     caption=message_to_broadcast.caption,
-                    parse_mode=message_to_broadcast.parse_mode
+                    parse_mode='HTML'
                 )
             else:  # Text or other
                 await context.bot.forward_message(

@@ -759,7 +759,7 @@ async def fav(client, message):
     # Find the character
     character = next((c for c in user['characters'] if c['id'] == character_id), None)
     if not character:
-        await message.reply_text(f"❌ You don't have character ID `{character_id}` in your collection!", parse_mode=enums.ParseMode.MARKDOWN)
+        await message.reply_text(f"❌ You don't have character ID <code>{character_id}</code> in your collection!", parse_mode=enums.ParseMode.HTML)
         return
     
     # Store pending favorite
@@ -982,7 +982,7 @@ async def fav_ptb(update: Update, context: CallbackContext):
     # Find the character
     character = next((c for c in user['characters'] if c['id'] == character_id), None)
     if not character:
-        await update.message.reply_text(f"❌ You don't have character ID `{character_id}` in your collection!", parse_mode='Markdown')
+        await update.message.reply_text(f"❌ You don't have character ID <code>{character_id}</code> in your collection!", parse_mode='HTML')
         return
     
     # Store pending favorite
