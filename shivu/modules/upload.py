@@ -12,14 +12,14 @@ from shivu.modules.harem import get_character_display_url
 
 # Rarity styles for display purposes
 rarity_styles = {
-    "Common": "⚪️",
-    "Rare": "🟠",
-    "Legendary": "🟡",
-    "Flat": "🔮",
-    "Transcendent": "🪞",
-    "Cosmic": "🌌",
-    "Oblivion": "🩸",
-    "Infinity": "🎞"
+    "Worn": "🟤",
+    "Gear": "⚙️",
+    "Wild": "🌿",
+    "Vortex": "🌀",
+    "Void": "🌑",
+    "Blaze": "🔥",
+    "Nebula": "🌌",
+    "Apex": "👑"
 }
 
 def get_format_text(level):
@@ -33,14 +33,14 @@ Honkai Star Rail
 4
 
 <b>Rarities:</b>
-1 = ⚪️ Common
-2 = 🟠 Rare
-3 = 🟡 Legendary
-4 = 🔮 Flat
-5 = 🪞 Transcendent
-6 = 🌌 Cosmic
-7 = 🩸 Oblivion
-8 = 🎞 Infinity"""
+1 = 🟤 Worn
+2 = ⚙️ Gear
+3 = 🌿 Wild
+4 = 🌀 Vortex
+5 = 🌑 Void
+6 = 🔥 Blaze
+7 = 🌌 Nebula
+8 = 👑 Apex"""
 
 
 async def get_uploader_level(user_id):
@@ -288,8 +288,8 @@ async def upload(update: Update, context: CallbackContext) -> None:
 
         # Map rarity name to number if needed
         rarity_name_map = {
-            "common": 1, "rare": 2, "legendary": 3, "flat": 4, 
-            "transcendent": 5, "cosmic": 6, "oblivion": 7, "infinity": 8
+            "worn": 1, "gear": 2, "wild": 3, "vortex": 4,
+            "void": 5, "blaze": 6, "nebula": 7, "apex": 8
         }
         
         try:
@@ -299,22 +299,22 @@ async def upload(update: Update, context: CallbackContext) -> None:
                 rarity_num = int(rarity_input)
                 
             rarity_map = {
-                1: "Common", 
-                2: "Rare", 
-                3: "Legendary", 
-                4: "Flat", 
-                5: "Transcendent", 
-                6: "Cosmic", 
-                7: "Oblivion", 
-                8: "Infinity"
+                1: "Worn",
+                2: "Gear",
+                3: "Wild",
+                4: "Vortex",
+                5: "Void",
+                6: "Blaze",
+                7: "Nebula",
+                8: "Apex"
             }
             
             # Level restrictions
             if level == 1 and rarity_num > 3:
-                await update.message.reply_text('❌ Level 1 uploaders can only upload up to Legendary rank (1-3).')
+                await update.message.reply_text('❌ Level 1 uploaders can only upload up to Wild rank (1-3).')
                 return
             if level == 2 and rarity_num > 6:
-                await update.message.reply_text('❌ Level 2 uploaders can only upload up to Cosmic rank (1-6).')
+                await update.message.reply_text('❌ Level 2 uploaders can only upload up to Blaze rank (1-6).')
                 return
             
             rarity = rarity_map[rarity_num]
@@ -415,14 +415,14 @@ async def update_card(update: Update, context: CallbackContext) -> None:
         is_video = 'video' in validation_message.lower() or any(ext in new_img_url.lower() for ext in ['.mp4', '.mov', '.avi', '.mkv'])
 
         rarity_map = {
-            1: "Common", 
-            2: "Rare", 
-            3: "Legendary", 
-            4: "Flat", 
-            5: "Transcendent", 
-            6: "Cosmic", 
-            7: "Oblivion", 
-            8: "Infinity"
+            1: "Worn",
+            2: "Gear",
+            3: "Wild",
+            4: "Vortex",
+            5: "Void",
+            6: "Blaze",
+            7: "Nebula",
+            8: "Apex"
         }
         try:
             rarity = rarity_map[int(args[4])]
@@ -575,14 +575,14 @@ async def summon(update: Update, context: CallbackContext) -> None:
         # Get characters grouped by rarity for weighted selection
         # Higher weight = more likely to spawn
         rarities_weights = {
-            "Common": 70,
-            "Rare": 20,
-            "Legendary": 6,
-            "Flat": 3,
-            "Transcendent": 0.8,
-            "Cosmic": 0.15,
-            "Oblivion": 0.04,
-            "Infinity": 0.01
+            "Worn": 70,
+            "Gear": 20,
+            "Wild": 6,
+            "Vortex": 3,
+            "Void": 0.8,
+            "Blaze": 0.15,
+            "Nebula": 0.04,
+            "Apex": 0.01
         }
         
         # Get available rarities from database (respecting event filter)
@@ -590,7 +590,7 @@ async def summon(update: Update, context: CallbackContext) -> None:
         if active_event and active_event.get('event_type') == 'christmas':
             event_filter['name'] = {'$regex': '🎄'}
             
-        # Check if we are in the main group (Infinity and Oblivion only spawn there)
+        # Check if we are in the main group (Nebula and Apex only spawn there)
         # Main GC ID: -1002961536913
         MAIN_GC_ID = -1002961536913
         is_main_gc = update.effective_chat.id == MAIN_GC_ID
@@ -608,7 +608,7 @@ async def summon(update: Update, context: CallbackContext) -> None:
         # Filter weights to only include available rarities and handle chat location
         available_weights = {}
         for rarity in available_rarities:
-            if rarity in ["Infinity", "Oblivion"] and not is_main_gc:
+            if rarity in ["Nebula", "Apex"] and not is_main_gc:
                 continue
                 
             weight = rarities_weights.get(rarity, 0)

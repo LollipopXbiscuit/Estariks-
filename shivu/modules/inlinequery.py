@@ -40,16 +40,16 @@ async def is_video_character(character, char_id=None, user_id=None):
     
     return False
 
-# Rarity emojis configuration (updated to match latest rarities)
+# Rarity emojis configuration
 rarity_emojis = {
-    "Common": "⚪️",
-    "Rare": "🟠",
-    "Legendary": "🟡",
-    "Flat": "🔮",
-    "Transcendent": "🪞",
-    "Cosmic": "🌌",
-    "Oblivion": "🩸",
-    "Infinity": "🎞"
+    "Worn": "🟤",
+    "Gear": "⚙️",
+    "Wild": "🌿",
+    "Vortex": "🌀",
+    "Void": "🌑",
+    "Blaze": "🔥",
+    "Nebula": "🌌",
+    "Apex": "👑"
 }
 
 # Event configuration
@@ -178,7 +178,7 @@ async def inlinequery(update: Update, context: CallbackContext) -> None:
     for character in characters:
         try:
             # Get rarity emoji for consistent display
-            rarity_emoji = rarity_emojis.get(character.get('rarity', 'Common'), "✨")
+            rarity_emoji = rarity_emojis.get(character.get('rarity', 'Worn'), "✨")
             
             # Detect event
             event_name = get_event_name(character.get('name', ''))

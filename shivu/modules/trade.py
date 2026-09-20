@@ -195,18 +195,17 @@ async def gift(client, message):
 
     # Rarity emoji mapping
     rarity_emojis = {
-        "Common": "⚪️",
-        "Uncommon": "🟢",
-        "Rare": "🔵",
-        "Epic": "🟣",
-        "Legendary": "🟡",
-        "Mythic": "🏵",
-        "Retro": "🍥",
-        "Zenith": "🪩",
-        "Limited Edition": "🍬"
+        "Worn": "🟤",
+        "Gear": "⚙️",
+        "Wild": "🌿",
+        "Vortex": "🌀",
+        "Void": "🌑",
+        "Blaze": "🔥",
+        "Nebula": "🌌",
+        "Apex": "👑"
     }
     
-    rarity_emoji = rarity_emojis.get(character.get('rarity', 'Common'), "✨")
+    rarity_emoji = rarity_emojis.get(character.get('rarity', 'Worn'), "✨")
     
     caption = (f"🎁 <b>Do you want to gift this character?</b>\n\n"
                f"🎴 <b>Name:</b> {escape(character['name'])}\n"
@@ -424,18 +423,17 @@ async def gift_ptb(update: Update, context: CallbackContext):
     
     # Rarity emoji mapping
     rarity_emojis = {
-        "Common": "⚪️",
-        "Uncommon": "🟢",
-        "Rare": "🔵",
-        "Epic": "🟣",
-        "Legendary": "🟡",
-        "Mythic": "🏵",
-        "Retro": "🍥",
-        "Zenith": "🪩",
-        "Limited Edition": "🍬"
+        "Worn": "🟤",
+        "Gear": "⚙️",
+        "Wild": "🌿",
+        "Vortex": "🌀",
+        "Void": "🌑",
+        "Blaze": "🔥",
+        "Nebula": "🌌",
+        "Apex": "👑"
     }
     
-    rarity_emoji = rarity_emojis.get(character.get('rarity', 'Common'), "✨")
+    rarity_emoji = rarity_emojis.get(character.get('rarity', 'Worn'), "✨")
     
     caption = (f"🎁 <b>Do you want to gift this character?</b>\n\n"
                f"🎴 <b>Name:</b> {escape(character['name'])}\n"

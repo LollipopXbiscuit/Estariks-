@@ -185,7 +185,7 @@ async def send_image(update: Update, context: CallbackContext) -> None:
     
     # Get spawnable characters (exclude Custom which never spawns)
     filter_criteria = {
-        'rarity': {'$in': ['Common', 'Rare', 'Legendary', 'Flat', 'Transcendent', 'Cosmic', 'Oblivion', 'Infinity']},
+        'rarity': {'$in': ['Worn', 'Gear', 'Wild', 'Vortex', 'Void', 'Blaze', 'Nebula', 'Apex']},
         'id': {'$nin': locked_character_ids}
     }
     
@@ -202,26 +202,26 @@ async def send_image(update: Update, context: CallbackContext) -> None:
     
     # Higher weight = more likely to spawn
     rarity_weights = {
-        "Common": 70,
-        "Rare": 20,
-        "Legendary": 6,
-        "Flat": 3,
-        "Transcendent": 0.8,
-        "Cosmic": 0.15,
-        "Oblivion": 0.04,
-        "Infinity": 0.01
+        "Worn": 70,
+        "Gear": 20,
+        "Wild": 6,
+        "Vortex": 3,
+        "Void": 0.8,
+        "Blaze": 0.15,
+        "Nebula": 0.04,
+        "Apex": 0.01
     }
     
-    # Filter rarities based on Chat ID (Oblivion and Infinity only in Main GC)
+    # Filter rarities based on Chat ID (Nebula and Apex only in Main GC)
     MAIN_GC_ID = -1002961536913
     if chat_id != MAIN_GC_ID:
-        if "Oblivion" in rarity_weights: rarity_weights["Oblivion"] = 0
-        if "Infinity" in rarity_weights: rarity_weights["Infinity"] = 0
+        if "Nebula" in rarity_weights: rarity_weights["Nebula"] = 0
+        if "Apex" in rarity_weights: rarity_weights["Apex"] = 0
     
     # Group characters by rarity
     characters_by_rarity = {}
     for char in all_characters:
-        rarity = char.get('rarity', 'Common')
+        rarity = char.get('rarity', 'Worn')
         if rarity not in characters_by_rarity:
             characters_by_rarity[rarity] = []
         characters_by_rarity[rarity].append(char)
@@ -275,14 +275,14 @@ async def send_image(update: Update, context: CallbackContext) -> None:
 
     # Rarity emoji mapping
     rarity_emojis = {
-        "Common": "⚪️",
-        "Rare": "🟠", 
-        "Legendary": "🟡",
-        "Flat": "🔮",
-        "Transcendent": "🪞",
-        "Cosmic": "🌌",
-        "Oblivion": "🩸",
-        "Infinity": "🎞"
+        "Worn": "🟤",
+        "Gear": "⚙️",
+        "Wild": "🌿",
+        "Vortex": "🌀",
+        "Void": "🌑",
+        "Blaze": "🔥",
+        "Nebula": "🌌",
+        "Apex": "👑"
     }
 
     rarity_emoji = rarity_emojis.get(character['rarity'], "✨")

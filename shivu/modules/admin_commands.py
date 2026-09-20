@@ -60,16 +60,17 @@ async def lockspawn(client, message):
     })
     
     rarity_emojis = {
-        "Common": "⚪️",
-        "Rare": "🟠",
-        "Legendary": "🟡",
-        "Flat": "🔮",
-        "Ninja": "⚡️",
-        "Knight": "🗡",
-        "Catapult": "🪄"
+        "Worn": "🟤",
+        "Gear": "⚙️",
+        "Wild": "🌿",
+        "Vortex": "🌀",
+        "Void": "🌑",
+        "Blaze": "🔥",
+        "Nebula": "🌌",
+        "Apex": "👑"
     }
     
-    rarity_emoji = rarity_emojis.get(character.get('rarity', 'Common'), "✨")
+    rarity_emoji = rarity_emojis.get(character.get('rarity', 'Worn'), "✨")
     
     await message.reply_text(
         f"🔒 **Spawn Locked!**\n\n"
@@ -149,24 +150,25 @@ async def lockedspawns(client, message, page=0):
     # Group by rarity
     rarity_groups = {}
     for char in current_page_chars:
-        rarity = char.get('rarity', 'Common')
+        rarity = char.get('rarity', 'Worn')
         if rarity not in rarity_groups:
             rarity_groups[rarity] = []
         rarity_groups[rarity].append(char)
     
     rarity_emojis = {
-        "Common": "⚪️",
-        "Rare": "🟠",
-        "Legendary": "🟡",
-        "Flat": "🔮",
-        "Ninja": "⚡️",
-        "Knight": "🗡",
-        "Catapult": "🪄"
+        "Worn": "🟤",
+        "Gear": "⚙️",
+        "Wild": "🌿",
+        "Vortex": "🌀",
+        "Void": "🌑",
+        "Blaze": "🔥",
+        "Nebula": "🌌",
+        "Apex": "👑"
     }
     
     message_text = f"🔒 **Locked Spawn Characters** - Page {page+1}/{total_pages}\n"
     
-    for rarity in ["Catapult", "Knight", "Ninja", "Flat", "Legendary", "Rare", "Common"]:
+    for rarity in ["Apex", "Nebula", "Blaze", "Void", "Vortex", "Wild", "Gear", "Worn"]:
         if rarity in rarity_groups:
             rarity_emoji = rarity_emojis.get(rarity, "✨")
             message_text += f"\n{rarity_emoji} **{rarity}:**\n"
@@ -219,27 +221,25 @@ async def lockedspawns_callback(client, callback_query):
         # Group by rarity
         rarity_groups = {}
         for char in current_page_chars:
-            rarity = char.get('rarity', 'Common')
+            rarity = char.get('rarity', 'Worn')
             if rarity not in rarity_groups:
                 rarity_groups[rarity] = []
             rarity_groups[rarity].append(char)
         
         rarity_emojis = {
-            "Common": "⚪️",
-            "Uncommon": "🟢",
-            "Rare": "🔵",
-            "Epic": "🟣",
-            "Legendary": "🟡",
-            "Mythic": "🏵",
-            "Retro": "🍥",
-            "Star": "⭐",
-            "Zenith": "🪩",
-            "Limited Edition": "🍬"
+            "Worn": "🟤",
+            "Gear": "⚙️",
+            "Wild": "🌿",
+            "Vortex": "🌀",
+            "Void": "🌑",
+            "Blaze": "🔥",
+            "Nebula": "🌌",
+            "Apex": "👑"
         }
         
         message_text = f"🔒 **Locked Spawn Characters** - Page {page+1}/{total_pages}\n"
         
-        for rarity in ["Catapult", "Knight", "Ninja", "Flat", "Legendary", "Rare", "Common"]:
+        for rarity in ["Apex", "Nebula", "Blaze", "Void", "Vortex", "Wild", "Gear", "Worn"]:
             if rarity in rarity_groups:
                 rarity_emoji = rarity_emojis.get(rarity, "✨")
                 message_text += f"\n{rarity_emoji} **{rarity}:**\n"
@@ -274,13 +274,14 @@ async def rarity(client, message):
     message_text = (
         "🎏 𝘊𝘩𝘢𝘳𝘢𝘤𝘵𝘦𝘳 𝘙𝘢𝘳𝘪𝘵𝘺 𝘚𝘺𝘴𝘵𝘦𝘮 🎏\n\n"
         "🎐 𝘙𝘦𝘨𝘶𝘭𝘢𝘳 𝘚𝘱𝘢𝘸𝘯𝘴 (𝘦𝘷𝘦𝘳𝘺 100 𝘮𝘦𝘴𝘴𝘢𝘨𝘦𝘴)\n\n"
-        "⚪️ 𝘊𝘰𝘮𝘮𝘰𝘯 : 60% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🟠 𝘙𝘢𝘳𝘦 : 30% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🔮 𝘍𝘭𝘢𝘵 : 5% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🟡 𝘓𝘦𝘨𝘦𝘯𝘥𝘢𝘳𝘺 : 3% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "⚡️ 𝘕𝘪𝘯𝘫𝘢 : 1% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🗡 𝘒𝘯𝘪𝘨𝘩𝘵 : 1% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🪄 𝘊𝘢𝘵𝘢𝘱𝘶𝘭𝘵 : 0% 𝘤𝘩𝘢𝘯𝘤𝘦 (𝘓𝘰𝘤𝘬𝘦𝘥)"
+        "🟤 𝘞𝘰𝘳𝘯 : 70% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "⚙️ 𝘎𝘦𝘢𝘳 : 20% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "🌿 𝘞𝘪𝘭𝘥 : 6% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "🌀 𝘝𝘰𝘳𝘵𝘦𝘹 : 3% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "🌑 𝘝𝘰𝘪𝘥 : 0.8% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "🔥 𝘉𝘭𝘢𝘻𝘦 : 0.15% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "🌌 𝘕𝘦𝘣𝘶𝘭𝘢 : 0.04% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "👑 𝘈𝘱𝘦𝘹 : 0.01% 𝘤𝘩𝘢𝘯𝘤𝘦"
     )
   
     await message.reply_text(message_text, parse_mode=enums.ParseMode.MARKDOWN)
@@ -333,12 +334,11 @@ async def lockspawn_ptb(update: Update, context: CallbackContext):
     })
     
     rarity_emojis = {
-        "Common": "⚪️", "Uncommon": "🟢", "Rare": "🔵", "Epic": "🟣",
-        "Legendary": "🟡", "Mythic": "🏵", "Retro": "🍥", "Star": "⭐",
-        "Zenith": "🪩", "Limited Edition": "🍬"
+        "Worn": "🟤", "Gear": "⚙️", "Wild": "🌿", "Vortex": "🌀",
+        "Void": "🌑", "Blaze": "🔥", "Nebula": "🌌", "Apex": "👑"
     }
     
-    rarity_emoji = rarity_emojis.get(character.get('rarity', 'Common'), "✨")
+    rarity_emoji = rarity_emojis.get(character.get('rarity', 'Worn'), "✨")
     
     await update.message.reply_text(
         f"🔒 **Spawn Locked!**\n\n"
@@ -410,20 +410,19 @@ async def lockedspawns_ptb(update: Update, context: CallbackContext, page=0):
     
     rarity_groups = {}
     for char in current_page_chars:
-        rarity = char.get('rarity', 'Common')
+        rarity = char.get('rarity', 'Worn')
         if rarity not in rarity_groups:
             rarity_groups[rarity] = []
         rarity_groups[rarity].append(char)
     
     rarity_emojis = {
-        "Common": "⚪️", "Uncommon": "🟢", "Rare": "🔵", "Epic": "🟣",
-        "Legendary": "🟡", "Mythic": "🏵", "Retro": "🍥", "Star": "⭐",
-        "Zenith": "🪩", "Limited Edition": "🍬"
+        "Worn": "🟤", "Gear": "⚙️", "Wild": "🌿", "Vortex": "🌀",
+        "Void": "🌑", "Blaze": "🔥", "Nebula": "🌌", "Apex": "👑"
     }
     
     message_text = f"🔒 **Locked Spawn Characters** - Page {page+1}/{total_pages}\n"
     
-    for rarity in ["Catapult", "Knight", "Ninja", "Flat", "Legendary", "Rare", "Common"]:
+    for rarity in ["Apex", "Nebula", "Blaze", "Void", "Vortex", "Wild", "Gear", "Worn"]:
         if rarity in rarity_groups:
             rarity_emoji = rarity_emojis.get(rarity, "✨")
             message_text += f"\n{rarity_emoji} **{rarity}:**\n"
@@ -472,20 +471,19 @@ async def lockedspawns_callback_ptb(update: Update, context: CallbackContext):
         
         rarity_groups = {}
         for char in current_page_chars:
-            rarity = char.get('rarity', 'Common')
+            rarity = char.get('rarity', 'Worn')
             if rarity not in rarity_groups:
                 rarity_groups[rarity] = []
             rarity_groups[rarity].append(char)
         
         rarity_emojis = {
-            "Common": "⚪️", "Uncommon": "🟢", "Rare": "🔵", "Epic": "🟣",
-            "Legendary": "🟡", "Mythic": "🏵", "Retro": "🍥", "Star": "⭐",
-            "Zenith": "🪩", "Limited Edition": "🍬"
+            "Worn": "🟤", "Gear": "⚙️", "Wild": "🌿", "Vortex": "🌀",
+            "Void": "🌑", "Blaze": "🔥", "Nebula": "🌌", "Apex": "👑"
         }
         
         message_text = f"🔒 **Locked Spawn Characters** - Page {page+1}/{total_pages}\n"
         
-        for rarity in ["Catapult", "Knight", "Ninja", "Flat", "Legendary", "Rare", "Common"]:
+        for rarity in ["Apex", "Nebula", "Blaze", "Void", "Vortex", "Wild", "Gear", "Worn"]:
             if rarity in rarity_groups:
                 rarity_emoji = rarity_emojis.get(rarity, "✨")
                 message_text += f"\n{rarity_emoji} **{rarity}:**\n"
@@ -519,13 +517,14 @@ async def rarity_ptb(update: Update, context: CallbackContext):
     message_text = (
         "🎏 𝘊𝘩𝘢𝘳𝘢𝘤𝘵𝘦𝘳 𝘙𝘢𝘳𝘪𝘵𝘺 𝘚𝘺𝘴𝘵𝘦𝘮 🎏\n\n"
         "🎐 𝘙𝘦𝘨𝘶𝘭𝘢𝘳 𝘚𝘱𝘢𝘸𝘯𝘴 (𝘦𝘷𝘦𝘳𝘺 100 𝘮𝘦𝘴𝘴𝘢𝘨𝘦𝘴)\n\n"
-        "⚪️ 𝘊𝘰𝘮𝘮𝘰𝘯 : 60% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🟠 𝘙𝘢𝘳𝘦 : 30% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🔮 𝘍𝘭𝘢𝘵 : 5% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🟡 𝘓𝘦𝘨𝘦𝘯𝘥𝘢𝘳𝘺 : 3% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "⚡️ 𝘕𝘪𝘯𝘫𝘢 : 1% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🗡 𝘒𝘯𝘪𝘨𝘩𝘵 : 1% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🪄 𝘊𝘢𝘵𝘢𝘱𝘶𝘭𝘵 : 0% 𝘤𝘩𝘢𝘯𝘤𝘦 (𝘓𝘰𝘤𝘬𝘦𝘥)"
+        "🟤 𝘞𝘰𝘳𝘯 : 70% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "⚙️ 𝘎𝘦𝘢𝘳 : 20% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "🌿 𝘞𝘪𝘭𝘥 : 6% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "🌀 𝘝𝘰𝘳𝘵𝘦𝘹 : 3% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "🌑 𝘝𝘰𝘪𝘥 : 0.8% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "🔥 𝘉𝘭𝘢𝘻𝘦 : 0.15% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "🌌 𝘕𝘦𝘣𝘶𝘭𝘢 : 0.04% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
+        "👑 𝘈𝘱𝘦𝘹 : 0.01% 𝘤𝘩𝘢𝘯𝘤𝘦"
     )
   
     await update.message.reply_text(message_text, parse_mode='Markdown')

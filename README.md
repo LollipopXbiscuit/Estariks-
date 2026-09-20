@@ -33,12 +33,16 @@ Format:
 
 use Rarity Number accordingly rarity Map
 
-| Number | Rarity     |
-| ------ | -----------|
-| 1 | ⚪️ Common   |
-| 2 | 🟣 Rare     |
-| 3 | 🟡 Legendary|
-| 4 | 🟢 Medium   |
+| Number | Rarity |
+| ------ | ------ |
+| 1 | 🟤 Worn |
+| 2 | ⚙️ Gear |
+| 3 | 🌿 Wild |
+| 4 | 🌀 Vortex |
+| 5 | 🌑 Void |
+| 6 | 🔥 Blaze |
+| 7 | 🌌 Nebula |
+| 8 | 👑 Apex |
 
 
 ## USER COMMANDS

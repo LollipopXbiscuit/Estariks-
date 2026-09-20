@@ -139,13 +139,11 @@ Preferred communication style: Simple, everyday language.
 - **Database Indexing**: Strategic indexes on frequently queried fields
 
 ## Rarity System
-- **Tiered Rarity**: 10-tier system with weighted spawn rates
-  - Common ⚪️ (~36%), Uncommon 🟢 (~29%), Rare 🔵 (~18%), Epic 🟣 (~11%)
-  - Legendary 🟡 (~3.6%), Mythic 🏵 (~1.8%), Retro 🍥 (~0.7%)
-  - Zenith 🪩 (~0.04%), Limited Edition 🍬 (~0.02%) - EXTREMELY rare
-  - Star ⭐ (exclusive to main GC, spawns every 200 messages)
+- **Tiered Rarity**: 8-tier system with weighted spawn rates
+  - Worn 🟤 (~70%), Gear ⚙️ (~20%), Wild 🌿 (~6%), Vortex 🌀 (~3%)
+  - Void 🌑 (~0.8%), Blaze 🔥 (~0.15%), Nebula 🌌 (~0.04%), Apex 👑 (~0.01%)
 - **Weighted Selection**: System picks rarity first using weights, then selects random character from that rarity
-- **Chat-Specific Spawning**: Star rarity only spawns in designated main group chat
+- **Chat-Specific Spawning**: Nebula and Apex only spawn in the designated main group chat
 - **Auto-incrementing IDs**: Sequence-based character ID generation
 - **Image Validation**: URL validation before character upload
 
