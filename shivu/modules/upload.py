@@ -80,6 +80,84 @@ async def can_upload(user_id):
     return await get_uploader_level(user_id) > 0
 
 
+async def adduploader(update: Update, context: CallbackContext) -> None:
+    """Add the replied-to user as an uploader (sudo users only)."""
+    if not update.effective_user or not update.message:
+        return
+
+    if not is_sudo_user(update.effective_user.id):
+        await update.message.reply_text(
+            "🚫 Only sudo users can add uploaders."
+        )
+        return
+
+    target_message = update.message.reply_to_message
+    if not target_message or not target_message.from_user:
+        await update.message.reply_text(
+            "📝 Reply to a user's message with `/adduploader`.\n"
+            "You can optionally choose a level: `/adduploader 1`, `/adduploader 2`, or `/adduploader 3`.",
+            parse_mode='Markdown'
+        )
+        return
+
+    if len(context.args) > 1:
+        await update.message.reply_text(
+            "❌ Usage: reply to a user's message with `/adduploader [level]`.\n"
+            "Level must be 1, 2, or 3."
+        )
+        return
+
+    level = 1
+    if context.args:
+        try:
+            level = int(context.args[0])
+        except ValueError:
+            level = 0
+
+    if level not in (1, 2, 3):
+        await update.message.reply_text(
+            "❌ Level must be 1, 2, or 3.\n"
+            "Level 1: up to Wild\n"
+            "Level 2: up to Blaze\n"
+            "Level 3: all rarities"
+        )
+        return
+
+    target_user = target_message.from_user
+    if is_sudo_user(target_user.id):
+        await update.message.reply_text(
+            "ℹ️ This user is already a sudo user and already has full upload access."
+        )
+        return
+
+    dynamic_uploaders_collection = db['dynamic_uploading_users']
+    await dynamic_uploaders_collection.update_one(
+        {'user_id': str(target_user.id)},
+        {
+            '$set': {
+                'user_id': str(target_user.id),
+                'level': level,
+                'username': target_user.username,
+                'first_name': target_user.first_name,
+                'added_by': str(update.effective_user.id),
+                'updated_at': datetime.now(timezone.utc),
+            },
+            '$setOnInsert': {
+                'created_at': datetime.now(timezone.utc),
+            }
+        },
+        upsert=True
+    )
+
+    await update.message.reply_text(
+        f"✅ <b>Uploader added</b>\n\n"
+        f"👤 <a href='tg://user?id={target_user.id}'>{escape(target_user.first_name)}</a>\n"
+        f"🆔 <code>{target_user.id}</code>\n"
+        f"📊 Level: <b>{level}</b>",
+        parse_mode='HTML'
+    )
+
+
 async def promote(update: Update, context: CallbackContext) -> None:
     if not update.effective_user or not update.message:
         return
@@ -1193,6 +1271,7 @@ application.add_handler(
 )
 application.add_handler(CommandHandler("update", update_card))
 application.add_handler(CommandHandler("delete", delete))
+application.add_handler(CommandHandler("adduploader", adduploader))
 application.add_handler(CommandHandler("promote", promote))
 application.add_handler(CommandHandler("remove", remove_character_from_user))
 application.add_handler(CommandHandler("find", find))

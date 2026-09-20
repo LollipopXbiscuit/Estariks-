@@ -704,6 +704,7 @@ async def post_init(application):
         BotCommand("sorts", "Set harem sorting preference"),
         BotCommand("invite", "Guess and collect a character"),
         BotCommand("upload", "Upload new character (admin only)"),
+        BotCommand("adduploader", "Add an uploader by replying (sudo only)"),
         BotCommand("summon", "Test character summon (admin only)"),
         BotCommand("changetime", "Change spawn frequency (admin only)"),
         BotCommand("ping", "Check bot status"),
