@@ -6,6 +6,7 @@ import os
 from aiohttp import web
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.error import NetworkError, TimedOut
 from telegram.ext import CommandHandler, CallbackContext, MessageHandler, filters
 from html import escape
 
@@ -784,7 +785,22 @@ async def run_bot():
     application.add_handler(MessageHandler(filters.ALL, message_counter, block=False))
     application.post_init = post_init
     
-    await application.initialize()
+    for attempt in range(1, 4):
+        try:
+            await application.initialize()
+            break
+        except (TimedOut, NetworkError) as error:
+            if attempt == 3:
+                raise
+            delay = 2 ** (attempt - 1)
+            LOGGER.warning(
+                "Telegram initialization attempt %s/3 timed out; retrying in %ss: %s",
+                attempt,
+                delay,
+                error,
+            )
+            await asyncio.sleep(delay)
+
     await application.start()
     
     webhook_url = os.environ.get('WEBHOOK_URL')
@@ -802,11 +818,18 @@ async def main_async():
     """Run both web server and bot"""
     await shivuu.start()
     LOGGER.info("Pyrogram client started")
-    
-    await asyncio.gather(
-        run_web_server(),
-        run_bot()
-    )
+    try:
+        await asyncio.gather(
+            run_web_server(),
+            run_bot()
+        )
+    finally:
+        if application.running:
+            await application.stop()
+        if application.initialized:
+            await application.shutdown()
+        if shivuu.is_connected:
+            await shivuu.stop()
 
 def main() -> None:
     """Run bot."""

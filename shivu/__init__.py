@@ -2,6 +2,7 @@ import logging
 import os
 from pyrogram.client import Client 
 from telegram.ext import Application
+from telegram.request import HTTPXRequest
 from motor.motor_asyncio import AsyncIOMotorClient
 import requests
 import tempfile
@@ -52,7 +53,27 @@ if mongo_url.endswith(','):
 if not mongo_url or mongo_url == ',':
     raise ValueError("MONGODB_URL is empty or contains only commas")
 
-application = Application.builder().token(TOKEN).build()
+telegram_request = HTTPXRequest(
+    connection_pool_size=8,
+    read_timeout=30,
+    write_timeout=30,
+    connect_timeout=30,
+    pool_timeout=30,
+)
+telegram_updates_request = HTTPXRequest(
+    connection_pool_size=8,
+    read_timeout=30,
+    write_timeout=30,
+    connect_timeout=30,
+    pool_timeout=30,
+)
+application = (
+    Application.builder()
+    .token(TOKEN)
+    .request(telegram_request)
+    .get_updates_request(telegram_updates_request)
+    .build()
+)
 shivuu = Client("Shivu", api_id, api_hash, bot_token=TOKEN)
 lol = AsyncIOMotorClient(mongo_url)
 db = lol['Character_catcher']
