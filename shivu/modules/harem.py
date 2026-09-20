@@ -1172,7 +1172,7 @@ async def all_rarities(update: Update, context: CallbackContext) -> None:
     await update.message.reply_text(message_text, parse_mode='HTML')
 
 
-application.add_handler(CommandHandler(["harem", "collection"], harem,block=False))
+application.add_handler(CommandHandler(["harem", "inventory"], harem,block=False))
 application.add_handler(CommandHandler("sorts", sorts, block=False))
 application.add_handler(CommandHandler("transfer", transfer_harem, block=False))
 application.add_handler(CommandHandler("fav", fav_ptb, block=False))

@@ -46,7 +46,7 @@ use Rarity Number accordingly rarity Map
 - `/fav` - Add a character to favorites
 - `/trade` - Trade a character with another user
 - `/gift` - Gift a character to another user
-- `/collection` - Boast your harem collection
+- `/inventory` - Boast your harem collection
 - `/topgroups` - List the groups with biggest harem (globally)
 - `/top` - List the users with biggest harem (globally)
 - `/ctop` - List the users with biggest harem (current chat)

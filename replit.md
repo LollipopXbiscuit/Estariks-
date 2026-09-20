@@ -128,7 +128,7 @@ Preferred communication style: Simple, everyday language.
 ## Command System
 - **Modular Design**: Commands organized in separate modules for maintainability
 - **Admin Controls**: Role-based permissions using Pyrogram's chat member status
-- **User Commands**: `/guess`, `/fav`, `/trade`, `/gift`, `/collection`, `/topgroups`, `/all`
+- **User Commands**: `/guess`, `/fav`, `/trade`, `/gift`, `/inventory`, `/topgroups`, `/all`
 - **Admin Commands**: `/upload`, `/changetime`, `/broadcast`, `/startevent`, `/endevent`
 - **Event Commands**: `/eventstatus` (public)
 
