@@ -2,13 +2,29 @@ import urllib.request
 import urllib.parse
 import urllib.error
 import re
+import uuid
+from datetime import datetime, timezone
+from html import escape
 from pymongo import ReturnDocument
 
-from telegram import Update
-from telegram.ext import CommandHandler, CallbackContext
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import CallbackQueryHandler, CommandHandler, CallbackContext
 
-from shivu import application, sudo_users, uploading_users, collection, db, CHARA_CHANNEL_ID, SUPPORT_CHAT, user_collection
+from shivu import (
+    application,
+    sudo_users,
+    uploading_users,
+    collection,
+    db,
+    CHARA_CHANNEL_ID,
+    SUPPORT_CHAT,
+    user_collection,
+    process_image_url,
+)
 from shivu.modules.harem import get_character_display_url
+
+UPLOAD_REVIEW_CHANNEL_ID = -1004315490516
+pending_uploads_collection = db['pending_character_uploads']
 
 # Rarity styles for display purposes
 rarity_styles = {
@@ -217,6 +233,227 @@ async def get_next_sequence_number(sequence_name):
     )
     return sequence_document['sequence_value']
 
+
+def is_sudo_user(user_id):
+    return str(user_id) in {str(sudo_id) for sudo_id in sudo_users}
+
+
+def get_upload_review_keyboard(pending_id):
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton(
+                "allow",
+                callback_data=f"upload_review:allow:{pending_id}"
+            ),
+            InlineKeyboardButton(
+                "disallow",
+                callback_data=f"upload_review:disallow:{pending_id}"
+            )
+        ]
+    ])
+
+
+def build_review_caption(payload):
+    uploader_name = escape(str(payload.get('uploader_name') or 'Unknown user'))
+    uploader_id = payload['uploader_id']
+    return (
+        f"🛡️ <b>Upload Review Required</b>\n\n"
+        f"✨ <b>{escape(payload['name'])}</b>\n"
+        f"🎌 <i>{escape(payload['anime'])}</i>\n"
+        f"━━━━━━━━━━━━━━━━\n"
+        f"{payload['rarity_emoji']} <b>{escape(payload['rarity'])}</b>\n"
+        f"━━━━━━━━━━━━━━━━\n"
+        f"📤 <b>Requested by:</b> "
+        f"<a href='tg://user?id={uploader_id}'>{uploader_name}</a> "
+        f"(<code>{uploader_id}</code>)\n\n"
+        f"Review this upload before it is added to the bot and database."
+    )
+
+
+async def send_upload_media(context, chat_id, media_url, is_video, caption, reply_markup=None):
+    if is_video:
+        return await context.bot.send_video(
+            chat_id=chat_id,
+            video=media_url,
+            caption=caption,
+            parse_mode='HTML',
+            reply_markup=reply_markup
+        )
+    return await context.bot.send_photo(
+        chat_id=chat_id,
+        photo=media_url,
+        caption=caption,
+        parse_mode='HTML',
+        reply_markup=reply_markup
+    )
+
+
+async def finalize_character_upload(context, payload):
+    pending_id = payload.get('_id')
+    if pending_id:
+        existing_character = await collection.find_one(
+            {'pending_upload_id': pending_id}
+        )
+        if existing_character:
+            return existing_character
+
+    character_id = str(await get_next_sequence_number('character_id'))
+    processed_url = await process_image_url(payload['img_url'])
+    media_source = payload.get('media_file_id') or processed_url
+    escaped_name = escape(payload['name'])
+    escaped_anime = escape(payload['anime'])
+    escaped_uploader = escape(str(payload.get('uploader_name') or 'Unknown user'))
+    uploader_id = payload['uploader_id']
+    caption = (
+        f"✨ <b>{escaped_name}</b> ✨\n"
+        f"🎌 <i>{escaped_anime}</i>\n"
+        f"━━━━━━━━━━━━━━━━\n"
+        f"{payload['rarity_emoji']} <b>{escape(payload['rarity'])}</b>\n"
+        f"🆔 <b>ID:</b> #{character_id}\n"
+        f"━━━━━━━━━━━━━━━━\n"
+        f"📤 Added by <a href='tg://user?id={uploader_id}'>{escaped_uploader}</a>"
+    )
+    message = await send_upload_media(
+        context,
+        CHARA_CHANNEL_ID,
+        media_source,
+        payload['is_video'],
+        caption
+    )
+    character = {
+        'img_url': payload['img_url'],
+        'name': payload['name'],
+        'anime': payload['anime'],
+        'rarity': payload['rarity'],
+        'id': character_id,
+        'message_id': message.message_id,
+    }
+    if pending_id:
+        character['pending_upload_id'] = pending_id
+    await collection.insert_one(character)
+    return character
+
+
+async def upload_review_callback(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query
+    if not query or not query.from_user:
+        return
+
+    if not is_sudo_user(query.from_user.id):
+        await query.answer("Only sudo users can approve uploads.", show_alert=True)
+        return
+
+    try:
+        _, action, pending_id = query.data.split(':', 2)
+    except (AttributeError, ValueError):
+        await query.answer("Invalid upload review.", show_alert=True)
+        return
+
+    if action not in {'allow', 'disallow'}:
+        await query.answer("Invalid upload review action.", show_alert=True)
+        return
+
+    if action == 'disallow':
+        pending = await pending_uploads_collection.find_one_and_update(
+            {'_id': pending_id, 'status': 'pending'},
+            {
+                '$set': {
+                    'status': 'rejected',
+                    'rejected_by': str(query.from_user.id),
+                    'rejected_at': datetime.now(timezone.utc)
+                }
+            },
+            return_document=ReturnDocument.AFTER
+        )
+        if not pending:
+            await query.answer("This upload was already reviewed.", show_alert=True)
+            return
+
+        await query.answer("Upload disallowed.")
+        if query.message:
+            await query.message.edit_caption(
+                caption=(
+                    f"❌ <b>Upload Disallowed</b>\n\n"
+                    f"{build_review_caption(pending)}\n\n"
+                    f"Reviewed by <code>{query.from_user.id}</code>"
+                ),
+                parse_mode='HTML',
+                reply_markup=None
+            )
+        try:
+            await context.bot.send_message(
+                chat_id=pending['uploader_id'],
+                text="❌ Your character upload was disallowed by a sudo user.",
+                parse_mode='HTML'
+            )
+        except Exception:
+            pass
+        return
+
+    pending = await pending_uploads_collection.find_one_and_update(
+        {'_id': pending_id, 'status': 'pending'},
+        {
+            '$set': {
+                'status': 'processing',
+                'approved_by': str(query.from_user.id),
+                'approved_at': datetime.now(timezone.utc)
+            }
+        },
+        return_document=ReturnDocument.AFTER
+    )
+    if not pending:
+        await query.answer("This upload was already reviewed.", show_alert=True)
+        return
+
+    await query.answer("Upload allowed. Adding character...")
+    try:
+        character = await finalize_character_upload(context, pending)
+        await pending_uploads_collection.update_one(
+            {'_id': pending_id},
+            {
+                '$set': {
+                    'status': 'approved',
+                    'character_id': character['id'],
+                    'completed_at': datetime.now(timezone.utc)
+                }
+            }
+        )
+        if query.message:
+            await query.message.edit_caption(
+                caption=(
+                    f"✅ <b>Upload Allowed</b>\n\n"
+                    f"{build_review_caption(pending)}\n\n"
+                    f"🆔 <b>Character ID:</b> #{character['id']}\n"
+                    f"Approved by <code>{query.from_user.id}</code>"
+                ),
+                parse_mode='HTML',
+                reply_markup=None
+            )
+        try:
+            await context.bot.send_message(
+                chat_id=pending['uploader_id'],
+                text=f"✅ Your character upload was approved and added as character #{character['id']}.",
+                parse_mode='HTML'
+            )
+        except Exception:
+            pass
+    except Exception as error:
+        await pending_uploads_collection.update_one(
+            {'_id': pending_id},
+            {
+                '$set': {
+                    'status': 'pending',
+                    'last_error': str(error),
+                    'last_failed_at': datetime.now(timezone.utc)
+                },
+                '$unset': {
+                    'approved_by': '',
+                    'approved_at': ''
+                }
+            }
+        )
+        await query.answer("Upload failed; it is available to retry.", show_alert=True)
+
 async def upload(update: Update, context: CallbackContext) -> None:
     if not update.effective_user or not update.message:
         return
@@ -233,17 +470,21 @@ async def upload(update: Update, context: CallbackContext) -> None:
         # Get image URL from media
         img_url = None
         is_video = False
+        media_file_id = None
         
         if target_message.photo:
             file = await target_message.photo[-1].get_file()
             img_url = file.file_path
+            media_file_id = target_message.photo[-1].file_id
         elif target_message.video:
             file = await target_message.video.get_file()
             img_url = file.file_path
+            media_file_id = target_message.video.file_id
             is_video = True
         elif target_message.animation:
             file = await target_message.animation.get_file()
             img_url = file.file_path
+            media_file_id = target_message.animation.file_id
             is_video = True
             
         # Check for multi-line text format
@@ -322,58 +563,57 @@ async def upload(update: Update, context: CallbackContext) -> None:
             await update.message.reply_text(get_format_text(level), parse_mode='HTML')
             return
 
-        id = str(await get_next_sequence_number('character_id'))
-        character = {
+        uploader = update.effective_user
+        payload = {
             'img_url': img_url,
             'name': character_name,
             'anime': anime,
             'rarity': rarity,
-            'id': id
+            'rarity_emoji': rarity_styles.get(rarity, ""),
+            'is_video': is_video or is_video_url(img_url) or '🎬' in character_name,
+            'media_file_id': media_file_id,
+            'uploader_id': uploader.id,
+            'uploader_name': uploader.full_name,
         }
-        
-        # Add to character channel and database
-        rarity_emoji = rarity_styles.get(rarity, "")
-        try:
-            from shivu import process_image_url
-            # Always ensure we use the correct img_url variable
-            if img_url and str(img_url).startswith('http'):
-                processed_url = await process_image_url(img_url)
-            elif img_url:
-                processed_url = img_url
-            else:
-                raise ValueError("Image URL is empty")
-            
-            caption = (
-                f"✨ <b>{character_name}</b> ✨\n"
-                f"🎌 <i>{anime}</i>\n"
-                f"━━━━━━━━━━━━━━━━\n"
-                f"{rarity_emoji} <b>{rarity}</b>\n"
-                f"🆔 <b>ID:</b> #{id}\n"
-                f"━━━━━━━━━━━━━━━━\n"
-                f"📤 Added by <a href='tg://user?id={update.effective_user.id}'>{update.effective_user.first_name}</a>"
+
+        if is_sudo_user(uploader.id):
+            character = await finalize_character_upload(context, payload)
+            await update.message.reply_text(
+                f"✅ CHARACTER ADDED SUCCESSFULLY! ID: #{character['id']}"
             )
-            
-            if is_video:
-                message = await context.bot.send_video(
-                    chat_id=CHARA_CHANNEL_ID,
-                    video=processed_url,
-                    caption=caption,
-                    parse_mode='HTML'
-                )
-            else:
-                message = await context.bot.send_photo(
-                    chat_id=CHARA_CHANNEL_ID,
-                    photo=processed_url,
-                    caption=caption,
-                    parse_mode='HTML'
-                )
-            character['message_id'] = message.message_id
-            await collection.insert_one(character)
-            await update.message.reply_text('✅ CHARACTER ADDED SUCCESSFULLY!')
-        except Exception as e:
-            # If sending fails, we still insert into DB but notify the user
-            await collection.insert_one(character)
-            await update.message.reply_text(f"✅ Character Added to DB but failed to send to channel: {str(e)}")
+            return
+
+        pending_id = uuid.uuid4().hex
+        pending = {
+            '_id': pending_id,
+            **payload,
+            'status': 'pending',
+            'requested_at': datetime.now(timezone.utc),
+        }
+        await pending_uploads_collection.insert_one(pending)
+
+        try:
+            processed_url = await process_image_url(img_url)
+            review_message = await send_upload_media(
+                context,
+                UPLOAD_REVIEW_CHANNEL_ID,
+                media_file_id or processed_url,
+                payload['is_video'],
+                build_review_caption(payload),
+                get_upload_review_keyboard(pending_id)
+            )
+            await pending_uploads_collection.update_one(
+                {'_id': pending_id},
+                {'$set': {'review_message_id': review_message.message_id}}
+            )
+        except Exception:
+            await pending_uploads_collection.delete_one({'_id': pending_id})
+            raise
+
+        await update.message.reply_text(
+            "⏳ Your upload was sent for sudo review. "
+            "It will be added only after approval."
+        )
         
     except Exception as e:
         await update.message.reply_text(f'❌ Character Upload Unsuccessful. Error: {str(e)}')
@@ -944,6 +1184,13 @@ async def find(update: Update, context: CallbackContext) -> None:
 
 
 application.add_handler(CommandHandler("upload", upload))
+application.add_handler(
+    CallbackQueryHandler(
+        upload_review_callback,
+        pattern=r"^upload_review:(allow|disallow):[a-f0-9]{32}$",
+        block=False
+    )
+)
 application.add_handler(CommandHandler("update", update_card))
 application.add_handler(CommandHandler("delete", delete))
 application.add_handler(CommandHandler("promote", promote))
