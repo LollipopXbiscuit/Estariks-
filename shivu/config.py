@@ -7,6 +7,8 @@ class Config(object):
     OWNER_ID = os.environ.get("OWNER_ID", "6765826972")
     sudo_users = [uid.strip() for uid in os.environ.get("SUDO_USERS", "6845325416,6765826972").split(",")]
     uploading_users = os.environ.get("UPLOADING_USERS", "").split(",") if os.environ.get("UPLOADING_USERS") else []
+    HEAD_ID = os.environ.get("HEAD_ID", "")
+    head_users = [uid.strip() for uid in HEAD_ID.split(",") if uid.strip()]
     GROUP_ID = int(os.environ.get("GROUP_ID", "-1002133191051"))
     TOKEN = (os.environ.get("TELEGRAM_BOT_TOKEN") or "").strip()
     mongo_url = (os.environ.get("MONGODB_URL") or "").strip()

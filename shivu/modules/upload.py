@@ -14,6 +14,7 @@ from shivu import (
     application,
     sudo_users,
     uploading_users,
+    head_users,
     collection,
     db,
     CHARA_CHANNEL_ID,
@@ -23,8 +24,8 @@ from shivu import (
 )
 from shivu.modules.harem import get_character_display_url
 
-# Keep upload reviews and approved character posts in the same channel.
-UPLOAD_REVIEW_CHANNEL_ID = CHARA_CHANNEL_ID
+# Keep the permission/review channel separate from the character channel.
+UPLOAD_REVIEW_CHANNEL_ID = -1004315490516
 pending_uploads_collection = db['pending_character_uploads']
 
 # Rarity styles for display purposes
@@ -78,7 +79,7 @@ You can also use one line:
 async def get_uploader_level(user_id):
     """Get uploader level from database (default 1) or 3 for sudo users"""
     user_id_str = str(user_id)
-    if user_id_str in sudo_users:
+    if user_id_str in sudo_users or user_id_str in head_users:
         return 3
     
     dynamic_uploaders_collection = db['dynamic_uploading_users']
@@ -92,7 +93,7 @@ async def get_uploader_level(user_id):
 
 
 async def can_upload(user_id):
-    """Check if user has upload permissions (sudo_users, uploading_users env var, or dynamic uploading_users)"""
+    """Check if user has upload permissions."""
     return await get_uploader_level(user_id) > 0
 
 
@@ -309,7 +310,7 @@ async def can_upload_user(user_id):
     user_id_str = str(user_id)
     
     # Check if user is in sudo_users or env uploading_users
-    if user_id_str in sudo_users or user_id_str in uploading_users:
+    if user_id_str in sudo_users or user_id_str in head_users or user_id_str in uploading_users:
         return True
     
     # Check if user is in dynamic uploading_users collection
@@ -330,6 +331,14 @@ async def get_next_sequence_number(sequence_name):
 
 def is_sudo_user(user_id):
     return str(user_id) in {str(sudo_id) for sudo_id in sudo_users}
+
+
+def is_head_user(user_id):
+    return str(user_id) in {str(head_id) for head_id in head_users}
+
+
+def can_review_upload(user_id):
+    return is_sudo_user(user_id) or is_head_user(user_id)
 
 
 def get_upload_review_keyboard(pending_id):
@@ -452,8 +461,11 @@ async def upload_review_callback(update: Update, context: CallbackContext) -> No
     if not query or not query.from_user:
         return
 
-    if not is_sudo_user(query.from_user.id):
-        await query.answer("Only sudo users can approve uploads.", show_alert=True)
+    if not can_review_upload(query.from_user.id):
+        await query.answer(
+            "Only sudo users or head uploaders can approve uploads.",
+            show_alert=True
+        )
         return
 
     try:
@@ -720,7 +732,7 @@ async def upload(update: Update, context: CallbackContext) -> None:
             'uploader_name': uploader.full_name,
         }
 
-        if is_sudo_user(uploader.id):
+        if can_review_upload(uploader.id):
             character = await finalize_character_upload(context, payload)
             await update.message.reply_text(
                 f"✅ CHARACTER ADDED SUCCESSFULLY! ID: #{character['id']}"
