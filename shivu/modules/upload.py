@@ -23,7 +23,8 @@ from shivu import (
 )
 from shivu.modules.harem import get_character_display_url
 
-UPLOAD_REVIEW_CHANNEL_ID = -1004315490516
+# Keep upload reviews and approved character posts in the same channel.
+UPLOAD_REVIEW_CHANNEL_ID = CHARA_CHANNEL_ID
 pending_uploads_collection = db['pending_character_uploads']
 
 # Rarity styles for display purposes
