@@ -48,6 +48,11 @@ Robin-❄️
 Honkai Star Rail
 4
 
+<b>One-line URL format:</b>
+/upload https://example.com/video.mp4 Robin-❄️ Honkai-Star-Rail 4
+or
+/upload https://example.com/video.mp4 | Robin ❄️ | Honkai Star Rail | 4
+
 <b>Rarities:</b>
 1 = 🟤 Worn
 2 = ⚙️ Gear
@@ -56,7 +61,17 @@ Honkai Star Rail
 5 = 🌑 Void
 6 = 🔥 Blaze
 7 = 🌌 Nebula
-8 = 👑 Apex"""
+8 = 👑 Apex
+
+<b>For an uploaded photo/video/MP4:</b>
+Reply to it with:
+/upload
+Character Name
+Anime Name
+4
+
+You can also use one line:
+/upload Character Name | Anime Name | 4"""
 
 
 async def get_uploader_level(user_id):
@@ -348,7 +363,23 @@ def build_review_caption(payload):
     )
 
 
-async def send_upload_media(context, chat_id, media_url, is_video, caption, reply_markup=None):
+async def send_upload_media(
+    context,
+    chat_id,
+    media_url,
+    is_video,
+    caption,
+    reply_markup=None,
+    media_type=None,
+):
+    if media_type == 'document':
+        return await context.bot.send_document(
+            chat_id=chat_id,
+            document=media_url,
+            caption=caption,
+            parse_mode='HTML',
+            reply_markup=reply_markup
+        )
     if is_video:
         return await context.bot.send_video(
             chat_id=chat_id,
@@ -396,13 +427,16 @@ async def finalize_character_upload(context, payload):
         CHARA_CHANNEL_ID,
         media_source,
         payload['is_video'],
-        caption
+        caption,
+        media_type=payload.get('media_type')
     )
     character = {
         'img_url': payload['img_url'],
         'name': payload['name'],
         'anime': payload['anime'],
         'rarity': payload['rarity'],
+        'is_video': payload['is_video'],
+        'media_type': payload.get('media_type'),
         'id': character_id,
         'message_id': message.message_id,
     }
@@ -549,21 +583,39 @@ async def upload(update: Update, context: CallbackContext) -> None:
         img_url = None
         is_video = False
         media_file_id = None
+        media_attached = False
+        media_type = None
         
         if target_message.photo:
             file = await target_message.photo[-1].get_file()
             img_url = file.file_path
             media_file_id = target_message.photo[-1].file_id
+            media_attached = True
         elif target_message.video:
             file = await target_message.video.get_file()
             img_url = file.file_path
             media_file_id = target_message.video.file_id
             is_video = True
+            media_attached = True
         elif target_message.animation:
             file = await target_message.animation.get_file()
             img_url = file.file_path
             media_file_id = target_message.animation.file_id
             is_video = True
+            media_attached = True
+        elif target_message.document:
+            document = target_message.document
+            document_name = (document.file_name or '').lower()
+            document_type = (document.mime_type or '').lower()
+            if document_type.startswith('video/') or document_name.endswith(
+                ('.mp4', '.mov', '.avi', '.mkv', '.webm', '.flv')
+            ):
+                file = await document.get_file()
+                img_url = file.file_path
+                media_file_id = document.file_id
+                is_video = True
+                media_attached = True
+                media_type = 'document'
             
         # Check for multi-line text format
         text_to_parse = update.message.text or update.message.caption
@@ -581,6 +633,18 @@ async def upload(update: Update, context: CallbackContext) -> None:
                 lines[0] = first_line
             else:
                 lines.pop(0)
+
+        # Allow a compact pipe-separated format for both direct URLs and replies:
+        # /upload URL | Character Name | Anime Name | 4
+        # /upload Character Name | Anime Name | 4 (when replying to media)
+        if len(lines) == 1 and '|' in lines[0]:
+            lines = [part.strip() for part in lines[0].split('|')]
+        elif not media_attached and len(lines) == 1:
+            # Support the documented one-line format:
+            # /upload URL character-name anime-name rarity
+            compact_parts = lines[0].split()
+            if len(compact_parts) == 4:
+                lines = compact_parts
 
         # Line 1: URL
         # Line 2: Name
@@ -649,6 +713,7 @@ async def upload(update: Update, context: CallbackContext) -> None:
             'rarity': rarity,
             'rarity_emoji': rarity_styles.get(rarity, ""),
             'is_video': is_video or is_video_url(img_url) or '🎬' in character_name,
+            'media_type': media_type,
             'media_file_id': media_file_id,
             'uploader_id': uploader.id,
             'uploader_name': uploader.full_name,
@@ -678,7 +743,8 @@ async def upload(update: Update, context: CallbackContext) -> None:
                 media_file_id or processed_url,
                 payload['is_video'],
                 build_review_caption(payload),
-                get_upload_review_keyboard(pending_id)
+                get_upload_review_keyboard(pending_id),
+                payload.get('media_type')
             )
             await pending_uploads_collection.update_one(
                 {'_id': pending_id},
