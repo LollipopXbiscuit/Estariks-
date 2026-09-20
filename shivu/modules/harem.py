@@ -111,7 +111,7 @@ async def is_video_character(character, char_id=None, user_id=None):
     return False
 
 # Main group for membership checking
-MAIN_GROUP = "@EstariksUpdates"
+MAIN_GROUP = "@cinelegacygroup"
 
 async def check_group_membership(user_id: int) -> bool:
     """Check if user is a member of the main group"""

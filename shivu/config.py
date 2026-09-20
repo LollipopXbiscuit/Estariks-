@@ -11,9 +11,9 @@ class Config(object):
     TOKEN = (os.environ.get("TELEGRAM_BOT_TOKEN") or "").strip()
     mongo_url = (os.environ.get("MONGODB_URL") or "").strip()
     PHOTO_URL = ["https://i.ibb.co/5gpmxQ5k/jsorg.jpg"]
-    SUPPORT_CHAT = os.environ.get("SUPPORT_CHAT", "EstariksSupport")
-    UPDATE_CHAT = os.environ.get("UPDATE_CHAT", "EstariksUpdates")
-    BOT_USERNAME = os.environ.get("BOT_USERNAME", "EstariksBot")
+    SUPPORT_CHAT = os.environ.get("SUPPORT_CHAT", "cinelegacyupdates").lstrip("@")
+    UPDATE_CHAT = os.environ.get("UPDATE_CHAT", "cinelegacygroup").lstrip("@")
+    BOT_USERNAME = os.environ.get("BOT_USERNAME", "CineLegacyBot").lstrip("@")
     CHARA_CHANNEL_ID = os.environ.get("CHARA_CHANNEL_ID", "-1002934487265")
     api_id_str = os.environ.get("TELEGRAM_API_ID", "0")
     api_id = int(api_id_str) if api_id_str and api_id_str.strip() else 0

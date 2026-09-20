@@ -34,7 +34,7 @@ async def start(update: Update, context: CallbackContext) -> None:
     if update.effective_chat.type== "private":
         
         
-        caption = f"""🏐 𝘞𝘦𝘭𝘤𝘰𝘮𝘦 𝘵𝘰 𝘌𝘴𝘵𝘢𝘳𝘪𝘬𝘴 𝘣𝘰𝘵 ~
+        caption = f"""🏐 𝘞𝘦𝘭𝘤𝘰𝘮𝘦 𝘵𝘰 𝘊𝘪𝘯𝘦𝘓𝘦𝘨𝘢𝘤𝘺 𝘣𝘰𝘵 ~
 
 💒 - 𝘈𝘤𝘩𝘪𝘦𝘷𝘦 𝘵𝘩𝘰𝘶𝘴𝘢𝘯𝘥𝘴 𝘰𝘧 𝘗𝘳𝘦𝘤𝘪𝘰𝘶𝘴 𝘊𝘩𝘢𝘳𝘢𝘤𝘵𝘦𝘳𝘴.
 
@@ -42,9 +42,9 @@ async def start(update: Update, context: CallbackContext) -> None:
 
 🗼 - 𝘊𝘰𝘭𝘭𝘦𝘤𝘵 𝘺𝘰𝘶𝘳 𝘥𝘳𝘦𝘢𝘮 𝘤𝘰𝘭𝘭𝘦𝘤𝘵𝘪𝘰𝘯
 
-🎀 𝘚𝘶𝘱𝘱𝘰𝘳𝘵 𝘤𝘩𝘢𝘯𝘯𝘦𝘭 : @EstariksUpdates
+🎀 𝘚𝘶𝘱𝘱𝘰𝘳𝘵 𝘤𝘩𝘢𝘯𝘯𝘦𝘭 : @{SUPPORT_CHAT}
 
-🎟 𝘔𝘢𝘪𝘯 𝘨𝘤 : @EstariksUpdates
+🎟 𝘔𝘢𝘪𝘯 𝘨𝘤 : @{UPDATE_CHAT}
         """
         
         keyboard = [
@@ -91,7 +91,7 @@ async def button(update: Update, context: CallbackContext) -> None:
 
     elif query.data == 'back':
 
-        caption = f"""🏐 𝘞𝘦𝘭𝘤𝘰𝘮𝘦 𝘵𝘰 𝘌𝘴𝘵𝘢𝘳𝘪𝘬𝘴 𝘣𝘰𝘵 ~
+        caption = f"""🏐 𝘞𝘦𝘭𝘤𝘰𝘮𝘦 𝘵𝘰 𝘊𝘪𝘯𝘦𝘓𝘦𝘨𝘢𝘤𝘺 𝘣𝘰𝘵 ~
 
 💒 - 𝘈𝘤𝘩𝘪𝘦𝘷𝘦 𝘵𝘩𝘰𝘶𝘴𝘢𝘯𝘥𝘴 𝘰𝘧 𝘗𝘳𝘦𝘤𝘪𝘰𝘶𝘴 𝘊𝘩𝘢𝘳𝘢𝘤𝘵𝘦𝘳𝘴.
 
@@ -99,9 +99,9 @@ async def button(update: Update, context: CallbackContext) -> None:
 
 🗼 - 𝘊𝘰𝘭𝘭𝘦𝘤𝘵 𝘺𝘰𝘶𝘳 𝘥𝘳𝘦𝘢𝘮 𝘤𝘰𝘭𝘭𝘦𝘤𝘵𝘪𝘰𝘯
 
-🎀 𝘚𝘶𝘱𝘱𝘰𝘳𝘵 𝘤𝘩𝘢𝘯𝘯𝘦𝘭 : @EstariksUpdates
+🎀 𝘚𝘶𝘱𝘱𝘰𝘳𝘵 𝘤𝘩𝘢𝘯𝘯𝘦𝘭 : @{SUPPORT_CHAT}
 
-🎟 𝘔𝘢𝘪𝘯 𝘨𝘤 : @EstariksUpdates
+🎟 𝘔𝘢𝘪𝘯 𝘨𝘤 : @{UPDATE_CHAT}
         """
 
         
