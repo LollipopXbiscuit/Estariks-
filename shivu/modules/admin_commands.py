@@ -5,9 +5,10 @@ from telegram.ext import CommandHandler, CallbackQueryHandler, CallbackContext
 import math
 import asyncio
 
-from shivu import collection, locked_spawns_collection, shivuu, application, user_collection, group_user_totals_collection, banned_users_collection, OWNER_ID
+from shivu import collection, locked_spawns_collection, shivuu, application, user_collection, group_user_totals_collection, banned_users_collection, restricted_users_collection, OWNER_ID
 from shivu.config import Config
 from datetime import datetime, timedelta
+from html import escape
 
 @shivuu.on_message(filters.command("lockspawn"))
 async def lockspawn(client, message):
@@ -788,6 +789,153 @@ async def broadcast_ptb(update: Update, context: CallbackContext) -> None:
     )
 
 
+# ============== RESTRICT COMMAND ==============
+
+async def _resolve_restrict_target(client, reply_user, args):
+    if reply_user:
+        return reply_user
+
+    if not args:
+        return None
+
+    identifier = args[0].strip()
+    if identifier.startswith("@"):
+        identifier = identifier[1:]
+    if not identifier:
+        return None
+
+    try:
+        lookup = int(identifier) if identifier.isdigit() else identifier
+        return await client.get_users(lookup)
+    except Exception:
+        return None
+
+
+def _is_sudo_user(user_id):
+    return str(user_id) in {str(sudo_id) for sudo_id in Config.sudo_users}
+
+
+async def _save_restriction(target_user, restricted_by):
+    now = datetime.now()
+    await restricted_users_collection.update_one(
+        {"user_id": int(target_user.id)},
+        {
+            "$set": {
+                "user_id": int(target_user.id),
+                "username": getattr(target_user, "username", None),
+                "first_name": getattr(target_user, "first_name", None),
+                "restricted_by": int(restricted_by),
+                "restricted_at": now,
+            }
+        },
+        upsert=True,
+    )
+
+
+def _restrict_usage():
+    return (
+        "📝 <b>Restrict Command</b>\n\n"
+        "Reply to a user's message with <code>/restrict</code>\n"
+        "or use <code>/restrict @username</code>.\n\n"
+        "The restriction remains active until removed by an administrator."
+    )
+
+
+@shivuu.on_message(filters.command("restrict"))
+async def restrict(client, message):
+    sender_id = message.from_user.id
+
+    if not _is_sudo_user(sender_id):
+        await message.reply_text("🚫 This command is only available to administrators.")
+        return
+
+    reply_user = (
+        message.reply_to_message.from_user
+        if message.reply_to_message and message.reply_to_message.from_user
+        else None
+    )
+    target_user = await _resolve_restrict_target(
+        client,
+        reply_user,
+        message.command[1:] if len(message.command) > 1 else [],
+    )
+    if not target_user:
+        await message.reply_text(_restrict_usage(), parse_mode=enums.ParseMode.HTML)
+        return
+
+    target_id = int(target_user.id)
+    if target_id == sender_id or target_id == int(OWNER_ID):
+        await message.reply_text("❌ You cannot restrict yourself or the bot owner.")
+        return
+    if _is_sudo_user(target_id):
+        await message.reply_text("❌ Sudo users cannot be restricted.")
+        return
+
+    already_restricted = await restricted_users_collection.find_one({"user_id": target_id})
+    await _save_restriction(target_user, sender_id)
+
+    target_name = escape(
+        getattr(target_user, "first_name", None)
+        or getattr(target_user, "username", None)
+        or str(target_id)
+    )
+    status = "already restricted" if already_restricted else "restricted"
+    await message.reply_text(
+        f"🚫 <b>User {status}</b>\n\n"
+        f"👤 {target_name}\n"
+        f"🆔 <code>{target_id}</code>\n\n"
+        "They can no longer use the bot.",
+        parse_mode=enums.ParseMode.HTML,
+    )
+
+
+async def restrict_ptb(update: Update, context: CallbackContext) -> None:
+    sender_id = update.effective_user.id
+
+    if not _is_sudo_user(sender_id):
+        await update.message.reply_text("🚫 This command is only available to administrators.")
+        return
+
+    reply_user = (
+        update.message.reply_to_message.from_user
+        if update.message.reply_to_message and update.message.reply_to_message.from_user
+        else None
+    )
+    target_user = await _resolve_restrict_target(
+        shivuu,
+        reply_user,
+        context.args or [],
+    )
+    if not target_user:
+        await update.message.reply_text(_restrict_usage(), parse_mode="HTML")
+        return
+
+    target_id = int(target_user.id)
+    if target_id == sender_id or target_id == int(OWNER_ID):
+        await update.message.reply_text("❌ You cannot restrict yourself or the bot owner.")
+        return
+    if _is_sudo_user(target_id):
+        await update.message.reply_text("❌ Sudo users cannot be restricted.")
+        return
+
+    already_restricted = await restricted_users_collection.find_one({"user_id": target_id})
+    await _save_restriction(target_user, sender_id)
+
+    target_name = escape(
+        getattr(target_user, "first_name", None)
+        or getattr(target_user, "username", None)
+        or str(target_id)
+    )
+    status = "already restricted" if already_restricted else "restricted"
+    await update.message.reply_text(
+        f"🚫 <b>User {status}</b>\n\n"
+        f"👤 {target_name}\n"
+        f"🆔 <code>{target_id}</code>\n\n"
+        "They can no longer use the bot.",
+        parse_mode="HTML",
+    )
+
+
 # ============== BONK/UNBONK COMMANDS ==============
 
 @shivuu.on_message(filters.command("bonk"))
@@ -1158,5 +1306,6 @@ application.add_handler(CommandHandler("broadcast", broadcast_ptb, block=False))
 application.add_handler(CommandHandler("bonk", bonk_ptb, block=False))
 application.add_handler(CommandHandler("unbonk", unbonk_ptb, block=False))
 application.add_handler(CommandHandler("resetm", resetm_ptb, block=False))
+application.add_handler(CommandHandler("restrict", restrict_ptb, block=False))
 application.add_handler(CallbackQueryHandler(lockedspawns_callback_ptb, pattern="^lockedspawns:", block=False))
 

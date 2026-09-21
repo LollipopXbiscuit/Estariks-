@@ -22,6 +22,7 @@ from shivu import (
     SUPPORT_CHAT,
     UPDATE_CHAT,
     application,
+    restricted_users_collection,
     shivuu,
 )
 
@@ -117,6 +118,33 @@ async def is_force_joined(user_id):
     return support_member and group_member
 
 
+async def is_restricted(user_id):
+    return await restricted_users_collection.find_one({"user_id": int(user_id)}) is not None
+
+
+async def _send_restricted_ptb_prompt(update):
+    message = update.effective_message
+    user = update.effective_user
+    if not message or not user or not _claim_prompt_slot(user.id):
+        return
+
+    await message.reply_text(
+        "🚫 <b>Your access to this bot has been restricted by an administrator.</b>",
+        parse_mode="HTML",
+    )
+
+
+async def _send_restricted_pyro_prompt(message):
+    user = message.from_user
+    if not user or not _claim_prompt_slot(user.id):
+        return
+
+    await message.reply_text(
+        "🚫 <b>Your access to this bot has been restricted by an administrator.</b>",
+        parse_mode="html",
+    )
+
+
 async def _send_ptb_prompt(update):
     message = update.effective_message
     user = update.effective_user
@@ -148,7 +176,14 @@ async def _send_pyro_prompt(message):
 
 async def force_join_ptb_message(update, context: CallbackContext):
     user = update.effective_user
-    if not user or await is_force_joined(user.id):
+    if not user:
+        return
+
+    if await is_restricted(user.id):
+        await _send_restricted_ptb_prompt(update)
+        raise ApplicationHandlerStop
+
+    if await is_force_joined(user.id):
         return
 
     await _send_ptb_prompt(update)
@@ -160,6 +195,13 @@ async def force_join_ptb_callback(update, context: CallbackContext):
     user = update.effective_user
     if not query or not user:
         return
+
+    if await is_restricted(user.id):
+        await query.answer(
+            "Your access to this bot has been restricted.",
+            show_alert=True,
+        )
+        raise ApplicationHandlerStop
 
     if query.data == "force_join:check":
         if await is_force_joined(user.id):
@@ -192,7 +234,14 @@ async def force_join_ptb_callback(update, context: CallbackContext):
 async def force_join_ptb_inline(update, context: CallbackContext):
     inline_query = update.inline_query
     user = update.effective_user
-    if not inline_query or not user or await is_force_joined(user.id):
+    if not inline_query or not user:
+        return
+
+    if await is_restricted(user.id):
+        await inline_query.answer([], cache_time=0, is_personal=True)
+        raise ApplicationHandlerStop
+
+    if await is_force_joined(user.id):
         return
 
     await inline_query.answer(
@@ -211,7 +260,14 @@ async def force_join_ptb_inline(update, context: CallbackContext):
 )
 async def force_join_pyro_message(client, message):
     user = message.from_user
-    if not user or await is_force_joined(user.id):
+    if not user:
+        return
+
+    if await is_restricted(user.id):
+        await _send_restricted_pyro_prompt(message)
+        raise StopPropagation
+
+    if await is_force_joined(user.id):
         return
 
     await _send_pyro_prompt(message)
@@ -223,6 +279,13 @@ async def force_join_pyro_callback(client, callback_query):
     user = callback_query.from_user
     if not user:
         return
+
+    if await is_restricted(user.id):
+        await callback_query.answer(
+            "Your access to this bot has been restricted.",
+            show_alert=True,
+        )
+        raise StopPropagation
 
     if callback_query.data == "force_join:check":
         if await is_force_joined(user.id):

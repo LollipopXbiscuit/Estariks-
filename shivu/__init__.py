@@ -86,6 +86,7 @@ top_global_groups_collection = db['top_global_groups']
 pm_users = db['total_pm_users']
 locked_spawns_collection = db['locked_spawns']
 banned_users_collection = db['banned_users']
+restricted_users_collection = db['restricted_users']
 event_settings_collection = db['event_settings']
 
 # Helper function to handle JFIF and other image formats
