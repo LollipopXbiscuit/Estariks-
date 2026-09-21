@@ -21,6 +21,7 @@ from shivu import (
     SUPPORT_CHAT,
     user_collection,
     process_image_url,
+    send_character_media,
 )
 from shivu.modules.harem import get_character_display_url
 
@@ -1046,11 +1047,12 @@ async def summon(update: Update, context: CallbackContext) -> None:
             from shivu import process_image_url
             processed_url = await process_image_url(character['img_url'])
             
-            await context.bot.send_photo(
+            await send_character_media(
+                bot=context.bot,
                 chat_id=chat_id,
-                photo=processed_url,
+                media_url=processed_url,
                 caption=caption,
-                parse_mode='HTML'
+                is_video=await is_video_character(character),
             )
         except Exception as img_error:
             # If image fails to load, send text message instead
@@ -1100,11 +1102,12 @@ async def summon(update: Update, context: CallbackContext) -> None:
             from shivu import process_image_url
             processed_url = await process_image_url(character['img_url'])
             
-            await context.bot.send_photo(
+            await send_character_media(
+                bot=context.bot,
                 chat_id=chat_id,
-                photo=processed_url,
+                media_url=processed_url,
                 caption=caption,
-                parse_mode='HTML'
+                is_video=await is_video_character(character),
             )
         except Exception as img_error:
             # If image fails to load, send text message instead

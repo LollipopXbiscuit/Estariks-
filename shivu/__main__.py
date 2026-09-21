@@ -258,7 +258,7 @@ async def send_image(update: Update, context: CallbackContext) -> None:
     caption = f"{rarity_emoji} 𝘢 𝘱𝘳𝘦𝘤𝘪𝘰𝘶𝘴 𝘴𝘰𝘶𝘭 𝘩𝘢𝘴 𝘦𝘯𝘵𝘦𝘳𝘦𝘥 𝘵𝘩𝘦 𝘤𝘩𝘢𝘵, 𝘶𝘴𝘦 /invite 𝘵𝘰 𝘵𝘢𝘬𝘦 𝘵𝘩𝘦𝘮 𝘪𝘯𝘵𝘰 𝘺𝘰𝘶𝘳 𝘤𝘩𝘢𝘮𝘣𝘦𝘳 🗼"
 
     try:
-        from shivu import process_image_url
+        from shivu import process_image_url, send_character_media
         img_url = character['img_url']
         # If it's a telegram file path, use it directly as photo/video
         if img_url.startswith('http'):
@@ -266,26 +266,13 @@ async def send_image(update: Update, context: CallbackContext) -> None:
         else:
             processed_url = img_url
         
-        if is_video_character(character):
-            try:
-                await context.bot.send_video(
-                    chat_id=chat_id,
-                    video=processed_url,
-                    caption=caption,
-                    parse_mode='HTML')
-            except Exception as video_error:
-                LOGGER.warning(f"Failed to send as video, trying as photo: {str(video_error)}")
-                await context.bot.send_photo(
-                    chat_id=chat_id,
-                    photo=processed_url,
-                    caption=f"🎬 {caption}",
-                    parse_mode='HTML')
-        else:
-            await context.bot.send_photo(
-                chat_id=chat_id,
-                photo=processed_url,
-                caption=caption,
-                parse_mode='HTML')
+        await send_character_media(
+            bot=context.bot,
+            chat_id=chat_id,
+            media_url=processed_url,
+            caption=caption,
+            is_video=is_video_character(character),
+        )
     except Exception as e:
         LOGGER.error(f"Error sending character image: {str(e)}")
         await context.bot.send_message(

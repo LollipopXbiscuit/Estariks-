@@ -7,6 +7,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import requests
 import tempfile
 import io
+import aiohttp
 
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
@@ -117,3 +118,59 @@ async def process_image_url(url):
             return url
     
     return url
+
+
+async def send_character_media(bot, chat_id, media_url, caption, is_video):
+    """Send a character image or video without silently changing its media type."""
+    if not is_video:
+        return await bot.send_photo(
+            chat_id=chat_id,
+            photo=media_url,
+            caption=caption,
+            parse_mode='HTML',
+        )
+
+    try:
+        return await bot.send_video(
+            chat_id=chat_id,
+            video=media_url,
+            caption=caption,
+            parse_mode='HTML',
+        )
+    except Exception as direct_error:
+        # Telegram's servers cannot fetch some valid MP4 URLs (CDN headers,
+        # redirects, or a missing video content type). Upload the bytes from
+        # this process instead of falling back to a still image.
+        if not isinstance(media_url, str) or not media_url.startswith(('http://', 'https://')):
+            raise
+
+        LOGGER.warning(
+            "Direct video send failed; downloading before retry: %s",
+            direct_error,
+        )
+
+        timeout = aiohttp.ClientTimeout(total=120)
+        async with aiohttp.ClientSession(
+            timeout=timeout,
+            headers={'User-Agent': 'CineLegacyBot/1.0'},
+        ) as session:
+            async with session.get(media_url, allow_redirects=True) as response:
+                response.raise_for_status()
+                video_bytes = io.BytesIO()
+                async for chunk in response.content.iter_chunked(1024 * 1024):
+                    video_bytes.write(chunk)
+
+        video_bytes.seek(0)
+        video_bytes.name = 'character.mp4'
+        try:
+            return await bot.send_video(
+                chat_id=chat_id,
+                video=video_bytes,
+                caption=caption,
+                parse_mode='HTML',
+            )
+        except Exception as upload_error:
+            raise RuntimeError(
+                f"Telegram rejected the direct video URL ({direct_error}) "
+                f"and the downloaded MP4 upload ({upload_error})"
+            ) from upload_error
