@@ -815,6 +815,99 @@ def _is_sudo_user(user_id):
     return str(user_id) in {str(sudo_id) for sudo_id in Config.sudo_users}
 
 
+COMMAND_CATALOG = (
+    (("start",), "Open the welcome screen and basic bot help.", "Public"),
+    (("harem", "inventory"), "View your collected character collection.", "Public"),
+    (("sorts",), "Choose how your harem is sorted and displayed.", "Public"),
+    (("transfer",), "Transfer your entire harem to another user.", "Public"),
+    (("fav",), "Set one of your collected characters as a favorite.", "Public"),
+    (("all",), "Show collection progress across all rarities.", "Public"),
+    (("invite",), "Guess and collect the character currently spawned in a group.", "Public"),
+    (("find",), "Find a character by its character ID.", "Public"),
+    (("gift",), "Give one of your characters to another user.", "Public"),
+    (("trade",), "Offer and complete a character trade with another user.", "Public"),
+    (("give",), "Give a character to another user by character ID.", "Public"),
+    (("top",), "Show the global users leaderboard.", "Public"),
+    (("topgroups",), "Show the global groups leaderboard.", "Public"),
+    (("ctop",), "Show the current group leaderboard.", "Public"),
+    (("ping",), "Check whether the bot is online and responsive.", "Public"),
+    (("rarity",), "Show the five character rarities and their spawn rates.", "Public"),
+    (("eventstatus",), "Show whether a special character event is active.", "Public"),
+    (("upload",), "Upload a new character to the database.", "Uploader/admin"),
+    (("update",), "Update an existing character’s details.", "Uploader/admin"),
+    (("delete",), "Delete a character from the database.", "Uploader/admin"),
+    (("adduploader",), "Add a user to the uploader permissions list.", "Sudo"),
+    (("promote",), "Promote a user to an uploader or elevated role.", "Sudo"),
+    (("remove",), "Remove a character from a user’s collection.", "Sudo"),
+    (("summon",), "Manually spawn a character for testing or administration.", "Admin"),
+    (("changetime",), "Change the automatic character spawn frequency.", "Admin"),
+    (("lockspawn",), "Prevent a character from appearing in spawns.", "Sudo"),
+    (("unlockspawn",), "Allow a previously locked character to spawn again.", "Sudo"),
+    (("lockedspawns",), "View the characters currently locked from spawning.", "Sudo"),
+    (("broadcast",), "Broadcast a replied-to message to bot users and groups.", "Owner"),
+    (("bonk",), "Temporarily block a user for two weeks.", "Owner"),
+    (("unbonk",), "Remove a temporary bonk from a user.", "Owner"),
+    (("resetm",), "Reset a user’s daily marriage limit.", "Sudo"),
+    (("restrict",), "Permanently block a user from using the bot by reply or username.", "Sudo"),
+    (("startevent",), "Start the Christmas character spawning event.", "Sudo"),
+    (("endevent",), "End the active character spawning event.", "Sudo"),
+    (("list",), "Export a document containing users who used the bot.", "Sudo"),
+    (("groups",), "Export a document containing groups where the bot has been used.", "Sudo"),
+    (("stats",), "Show the total user and group counts.", "Owner"),
+    (("eval", "e", "ev", "eva"), "Run developer Python evaluation code.", "Developer"),
+    (("exec", "x", "ex", "exe", "py"), "Run developer Python execution code.", "Developer"),
+    (("clearlocals",), "Clear the developer evaluation namespace for the chat.", "Developer"),
+    (("commands",), "Show this complete command list and command count.", "Sudo"),
+)
+
+
+def _commands_message_chunks():
+    command_count = len(COMMAND_CATALOG)
+    trigger_count = sum(len(names) for names, _, _ in COMMAND_CATALOG)
+    header = (
+        "📚 <b>Bot Commands</b>\n\n"
+        f"<b>Unique command features:</b> {command_count}\n"
+        f"<b>Accepted command names including aliases:</b> {trigger_count}\n\n"
+    )
+    lines = []
+    for names, explanation, access in COMMAND_CATALOG:
+        command_names = " / ".join(f"/{name}" for name in names)
+        lines.append(
+            f"• <code>{command_names}</code> — {explanation} "
+            f"<i>[{access}]</i>"
+        )
+
+    chunks = []
+    current = header
+    for line in lines:
+        if len(current) + len(line) + 1 > 3900:
+            chunks.append(current.rstrip())
+            current = ""
+        current += f"{line}\n"
+    if current.strip():
+        chunks.append(current.rstrip())
+    return chunks
+
+
+@shivuu.on_message(filters.command("commands"))
+async def commands(client, message):
+    if not _is_sudo_user(message.from_user.id):
+        await message.reply_text("🚫 This command is only available to administrators.")
+        return
+
+    for chunk in _commands_message_chunks():
+        await message.reply_text(chunk, parse_mode=enums.ParseMode.HTML)
+
+
+async def commands_ptb(update: Update, context: CallbackContext) -> None:
+    if not _is_sudo_user(update.effective_user.id):
+        await update.message.reply_text("🚫 This command is only available to administrators.")
+        return
+
+    for chunk in _commands_message_chunks():
+        await update.message.reply_text(chunk, parse_mode="HTML")
+
+
 async def _save_restriction(target_user, restricted_by):
     now = datetime.now()
     await restricted_users_collection.update_one(
@@ -1307,5 +1400,6 @@ application.add_handler(CommandHandler("bonk", bonk_ptb, block=False))
 application.add_handler(CommandHandler("unbonk", unbonk_ptb, block=False))
 application.add_handler(CommandHandler("resetm", resetm_ptb, block=False))
 application.add_handler(CommandHandler("restrict", restrict_ptb, block=False))
+application.add_handler(CommandHandler("commands", commands_ptb, block=False))
 application.add_handler(CallbackQueryHandler(lockedspawns_callback_ptb, pattern="^lockedspawns:", block=False))
 
