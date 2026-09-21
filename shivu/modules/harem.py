@@ -146,7 +146,7 @@ async def sorts(update: Update, context: CallbackContext) -> None:
             "• <code>/sorts limited_time</code> - Show limited time cards first\n"
             "• <code>/sorts reset</code> - Reset filters and show all\n\n"
             "<b>Examples:</b>\n"
-            "• <code>/sorts rarity Wild</code>\n"
+            "• <code>/sorts rarity Blaze</code>\n"
             "• <code>/sorts character Naruto</code>\n\n"
             "💡 Your preferences will be remembered for future /harem displays!",
             parse_mode='HTML'
@@ -172,7 +172,7 @@ async def sorts(update: Update, context: CallbackContext) -> None:
     # Handle filtering options
     if sort_type == 'rarity':
         if len(args) < 2:
-            valid_rarities = ["Worn", "Gear", "Wild", "Vortex", "Void", "Blaze", "Nebula", "Apex"]
+            valid_rarities = ["Worn", "Gear", "Blaze", "Nebula", "Apex"]
             await update.message.reply_text(
                 "❌ Please specify a rarity!\n\n"
                 "<b>Valid rarities:</b>\n" + 
@@ -182,7 +182,7 @@ async def sorts(update: Update, context: CallbackContext) -> None:
             return
         
         rarity_filter = ' '.join(args[1:]).title()
-        valid_rarities = ["Worn", "Gear", "Wild", "Vortex", "Void", "Blaze", "Nebula", "Apex"]
+        valid_rarities = ["Worn", "Gear", "Blaze", "Nebula", "Apex"]
         
         if rarity_filter not in valid_rarities:
             await update.message.reply_text(
@@ -364,16 +364,21 @@ async def harem(update: Update, context: CallbackContext, page=0) -> None:
     # Then apply sorting
     if sort_preference == 'rarity':
         # Sort by rarity (rarest first) then by name
-        rarity_order = ["Apex", "Nebula", "Blaze", "Void", "Vortex", "Wild", "Gear", "Worn"]
-        characters = sorted(characters, key=lambda x: (rarity_order.index(x.get('rarity', 'Worn')), x['name']))
+        rarity_order = ["Apex", "Nebula", "Blaze", "Gear", "Worn"]
+        characters = sorted(characters, key=lambda x: (
+            rarity_order.index(x.get('rarity', 'Worn'))
+            if x.get('rarity', 'Worn') in rarity_order else len(rarity_order),
+            x['name']
+        ))
     elif sort_preference == 'name':
         # Sort by character name alphabetically
         characters = sorted(characters, key=lambda x: x['name'])
     elif sort_preference == 'limited_time':
         # Sort by rarity (rarest first), then by name
-        rarity_order = ["Apex", "Nebula", "Blaze", "Void", "Vortex", "Wild", "Gear", "Worn"]
+        rarity_order = ["Apex", "Nebula", "Blaze", "Gear", "Worn"]
         characters = sorted(characters, key=lambda x: (
-            rarity_order.index(x.get('rarity', 'Worn')),
+            rarity_order.index(x.get('rarity', 'Worn'))
+            if x.get('rarity', 'Worn') in rarity_order else len(rarity_order),
             x['name']
         ))
     else:
@@ -425,9 +430,6 @@ async def harem(update: Update, context: CallbackContext, page=0) -> None:
             rarity_emojis = {
                 "Worn": "🟤",
                 "Gear": "⚙️",
-                "Wild": "🌿",
-                "Vortex": "🌀",
-                "Void": "🌑",
                 "Blaze": "🔥",
                 "Nebula": "🌌",
                 "Apex": "👑"
@@ -775,9 +777,6 @@ async def fav(client, message):
     rarity_emojis = {
         "Worn": "🟤",
         "Gear": "⚙️",
-        "Wild": "🌿",
-        "Vortex": "🌀",
-        "Void": "🌑",
         "Blaze": "🔥",
         "Nebula": "🌌",
         "Apex": "👑"
@@ -996,8 +995,8 @@ async def fav_ptb(update: Update, context: CallbackContext):
     
     # Send character image with confirmation
     rarity_emojis = {
-        "Worn": "🟤", "Gear": "⚙️", "Wild": "🌿", "Vortex": "🌀",
-        "Void": "🌑", "Blaze": "🔥", "Nebula": "🌌", "Apex": "👑"
+        "Worn": "🟤", "Gear": "⚙️", "Blaze": "🔥",
+        "Nebula": "🌌", "Apex": "👑"
     }
     
     rarity_emoji = rarity_emojis.get(character.get('rarity', 'Worn'), "✨")
@@ -1130,13 +1129,10 @@ async def all_rarities(update: Update, context: CallbackContext) -> None:
     total_rarity_counts = Counter(char.get('rarity', 'Worn') for char in all_characters)
     
     # Define rarity order and emojis (rarest first)
-    rarity_order = ["Apex", "Nebula", "Blaze", "Void", "Vortex", "Wild", "Gear", "Worn"]
+    rarity_order = ["Apex", "Nebula", "Blaze", "Gear", "Worn"]
     rarity_emojis = {
         "Worn": "🟤",
         "Gear": "⚙️",
-        "Wild": "🌿",
-        "Vortex": "🌀",
-        "Void": "🌑",
         "Blaze": "🔥",
         "Nebula": "🌌",
         "Apex": "👑"

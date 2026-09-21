@@ -37,12 +37,9 @@ use Rarity Number accordingly rarity Map
 | ------ | ------ |
 | 1 | 🟤 Worn |
 | 2 | ⚙️ Gear |
-| 3 | 🌿 Wild |
-| 4 | 🌀 Vortex |
-| 5 | 🌑 Void |
-| 6 | 🔥 Blaze |
-| 7 | 🌌 Nebula |
-| 8 | 👑 Apex |
+| 3 | 🔥 Blaze |
+| 4 | 🌌 Nebula |
+| 5 | 👑 Apex |
 
 
 ## USER COMMANDS

@@ -44,9 +44,6 @@ async def is_video_character(character, char_id=None, user_id=None):
 rarity_emojis = {
     "Worn": "🟤",
     "Gear": "⚙️",
-    "Wild": "🌿",
-    "Vortex": "🌀",
-    "Void": "🌑",
     "Blaze": "🔥",
     "Nebula": "🌌",
     "Apex": "👑"

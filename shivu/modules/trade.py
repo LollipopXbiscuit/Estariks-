@@ -197,9 +197,6 @@ async def gift(client, message):
     rarity_emojis = {
         "Worn": "🟤",
         "Gear": "⚙️",
-        "Wild": "🌿",
-        "Vortex": "🌀",
-        "Void": "🌑",
         "Blaze": "🔥",
         "Nebula": "🌌",
         "Apex": "👑"
@@ -425,9 +422,6 @@ async def gift_ptb(update: Update, context: CallbackContext):
     rarity_emojis = {
         "Worn": "🟤",
         "Gear": "⚙️",
-        "Wild": "🌿",
-        "Vortex": "🌀",
-        "Void": "🌑",
         "Blaze": "🔥",
         "Nebula": "🌌",
         "Apex": "👑"

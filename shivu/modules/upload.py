@@ -32,9 +32,6 @@ pending_uploads_collection = db['pending_character_uploads']
 rarity_styles = {
     "Worn": "🟤",
     "Gear": "⚙️",
-    "Wild": "🌿",
-    "Vortex": "🌀",
-    "Void": "🌑",
     "Blaze": "🔥",
     "Nebula": "🌌",
     "Apex": "👑"
@@ -58,12 +55,9 @@ or
 <b>Rarities:</b>
 1 = 🟤 Worn
 2 = ⚙️ Gear
-3 = 🌿 Wild
-4 = 🌀 Vortex
-5 = 🌑 Void
-6 = 🔥 Blaze
-7 = 🌌 Nebula
-8 = 👑 Apex
+3 = 🔥 Blaze
+4 = 🌌 Nebula
+5 = 👑 Apex
 
 <b>For an uploaded photo/video/MP4:</b>
 Reply to it with:
@@ -134,8 +128,8 @@ async def adduploader(update: Update, context: CallbackContext) -> None:
     if level not in (1, 2, 3):
         await update.message.reply_text(
             "❌ Level must be 1, 2, or 3.\n"
-            "Level 1: up to Wild\n"
-            "Level 2: up to Blaze\n"
+            "Level 1: up to Gear\n"
+            "Level 2: up to Nebula\n"
             "Level 3: all rarities"
         )
         return
@@ -684,8 +678,7 @@ async def upload(update: Update, context: CallbackContext) -> None:
 
         # Map rarity name to number if needed
         rarity_name_map = {
-            "worn": 1, "gear": 2, "wild": 3, "vortex": 4,
-            "void": 5, "blaze": 6, "nebula": 7, "apex": 8
+            "worn": 1, "gear": 2, "blaze": 3, "nebula": 4, "apex": 5
         }
         
         try:
@@ -697,20 +690,17 @@ async def upload(update: Update, context: CallbackContext) -> None:
             rarity_map = {
                 1: "Worn",
                 2: "Gear",
-                3: "Wild",
-                4: "Vortex",
-                5: "Void",
-                6: "Blaze",
-                7: "Nebula",
-                8: "Apex"
+                3: "Blaze",
+                4: "Nebula",
+                5: "Apex"
             }
             
             # Level restrictions
-            if level == 1 and rarity_num > 3:
-                await update.message.reply_text('❌ Level 1 uploaders can only upload up to Wild rank (1-3).')
+            if level == 1 and rarity_num > 2:
+                await update.message.reply_text('❌ Level 1 uploaders can only upload up to Gear rank (1-2).')
                 return
-            if level == 2 and rarity_num > 6:
-                await update.message.reply_text('❌ Level 2 uploaders can only upload up to Blaze rank (1-6).')
+            if level == 2 and rarity_num > 4:
+                await update.message.reply_text('❌ Level 2 uploaders can only upload up to Nebula rank (1-4).')
                 return
             
             rarity = rarity_map[rarity_num]
@@ -814,17 +804,14 @@ async def update_card(update: Update, context: CallbackContext) -> None:
         rarity_map = {
             1: "Worn",
             2: "Gear",
-            3: "Wild",
-            4: "Vortex",
-            5: "Void",
-            6: "Blaze",
-            7: "Nebula",
-            8: "Apex"
+            3: "Blaze",
+            4: "Nebula",
+            5: "Apex"
         }
         try:
             rarity = rarity_map[int(args[4])]
         except (KeyError, ValueError):
-            await update.message.reply_text('Invalid rarity (1-8).')
+            await update.message.reply_text('Invalid rarity (1-5).')
             return
 
         rarity_emoji = rarity_styles.get(rarity, "")
@@ -974,9 +961,6 @@ async def summon(update: Update, context: CallbackContext) -> None:
         rarities_weights = {
             "Worn": 70,
             "Gear": 20,
-            "Wild": 6,
-            "Vortex": 3,
-            "Void": 0.8,
             "Blaze": 0.15,
             "Nebula": 0.04,
             "Apex": 0.01

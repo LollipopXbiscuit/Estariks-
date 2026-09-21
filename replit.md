@@ -6,23 +6,16 @@ This is a Telegram character catcher bot called "CineLegacy Bot" that operates a
 
 ## January 29, 2026
 - **Bot Identity**: The bot is branded as CineLegacy.
-- **Rarity Overhaul**: Replaced the entire rarity system with new tiers:
-  - 🪄 Catapult (Ultra Rare - Star equivalent)
-  - 🗡 Knight (Event/Rare - Zenith equivalent)
-  - ⚡️ Ninja
-  - 🔮 Flat (Retro equivalent)
-  - 🟡 Legendary
-  - 🟠 Rare
-  - ⚪️ Common
+- **Rarity System**: The active five-tier system is Worn 🟤, Gear ⚙️, Blaze 🔥, Nebula 🌌, and Apex 👑.
 - **UI Refresh**: Updated `/start` command with a new animated GIF background and custom welcome message.
-- **Spawning System**: Updated weights and interval logic to match the new rarity tiers.
+- **Spawning System**: Updated weights and interval logic to match the five active rarity tiers.
 
 ## December 9, 2025
 - **Christmas Event System**: Added comprehensive event system for seasonal character spawning
   - `/startevent` - Sudo-only command to start Christmas event where only 🎄 characters spawn
   - `/endevent` - Sudo-only command to end the event and return to normal spawns
   - `/eventstatus` - Public command to check if an event is active
-  - All spawn paths (regular, Star, and /summon) respect the event filter
+  - All regular and `/summon` spawn paths respect the event filter
   - Event state persisted in MongoDB across bot restarts
   - Safety check prevents starting event when no matching characters exist
 - **Database**: Added `event_settings_collection` for event state persistence
@@ -48,32 +41,17 @@ This is a Telegram character catcher bot called "CineLegacy Bot" that operates a
 - **Spawn System Overhaul**: Fixed weighted random selection to properly respect rarity spawn rates
   - Previously: System used `random.choice` which gave equal chance to all characters regardless of rarity
   - Now: Uses `random.choices` with proper weights to select rarity FIRST, then picks a random character from that rarity
-  - This fixes the bug where Mythic characters spawned as often as Common ones
-- **Retro Added to Regular Spawns**: Removed separate 2000-message Retro system, now spawns in regular weighted system
-- **Zenith & Limited Edition EXTREMELY Rare**: Made these ultra-rare tiers nearly impossible to get
-  - Zenith: ~0.04% spawn chance (weight: 0.1)
-  - Limited Edition: ~0.02% spawn chance (weight: 0.05)
-- **New Spawn Weights** (approximate percentages):
-  - Common: ~36% | Uncommon: ~29% | Rare: ~18% | Epic: ~11%
-  - Legendary: ~3.6% | Mythic: ~1.8% | Retro: ~0.7%
-  - Zenith: ~0.04% | Limited Edition: ~0.02%
-  - Star: Main GC only every 200 messages (special system)
-- **Star Rarity in /upload**: Added Star rarity (number 8) to upload command, shifted Zenith to 9 and Limited Edition to 10
+  - This fixes the bug where rare characters spawned as often as common ones
+- **Regular Spawn Pool**: All characters now use the active five-tier weighted system
+- **Spawn Weights**: Regular spawns select from the five active rarities using weighted rarity selection.
 
 ## November 21, 2025
-- **Star Rarity System**: Added new Star (⭐) rarity tier positioned above Zenith in the rarity hierarchy
-  - Star characters only spawn in the main group chat (ID: -1002961536913) every 200 messages
-  - Added Star to all rarity emoji mappings and ordering lists throughout the codebase
-  - Star characters are excluded from regular spawn pools and appear only in the designated chat
-  - Updated `/rarity` command to display Star spawn information
-- **Retro Spawn Interval Update**: Changed Retro character spawn frequency from every 4000 messages to every 2000 messages
-  - Updated all documentation and help text to reflect new 2000-message interval
-  - Retro spawn logic in message_counter now triggers at 2000-message intervals
-- **/all Command**: Added new `/all` command to display collection progress across all rarities
+- **Spawn Interval Update**: Updated regular character spawn timing and related help text.
+- **/all Command**: Added new `/all` command to display collection progress across the five active rarities
   - Shows owned vs total characters for each rarity tier
   - Displays visual progress bars (10 blocks: ▰ filled, ▱ empty) with percentage completion
-  - Rarity order: Limited Edition, Star, Zenith, Retro, Mythic, Legendary, Epic, Rare, Uncommon, Common
-  - Format example: "🏵 Mythic: 57/249 ▰▰▱▱▱▱▱▱▱▱ 23%"
+  - Rarity order: Apex, Nebula, Blaze, Gear, Worn
+  - Format example: "👑 Apex: 57/249 ▰▰▱▱▱▱▱▱▱▱ 23%"
 
 ## September 30, 2025
 - **Video Detection Fix for URLs Without Extensions**: Fixed video detection to work with URLs that don't have file extensions (like cloudflare /dl/ links)
@@ -94,7 +72,7 @@ This is a Telegram character catcher bot called "CineLegacy Bot" that operates a
   - Harem preview shows videos for favorite and random characters
   - Inline queries support video results with proper MIME types (MP4, WEBM, MOV, AVI, MKV, FLV)
 - **Character Name Filtering**: Fixed `/sorts character` command to support partial name matching. Now "Ashley" will match "Ashley Graves ⛩️" and other character names with emojis
-- **Locked Spawns Display**: Fixed `lockedspawns` command to include Retro rarity characters in the display
+- **Locked Spawns Display**: Fixed `lockedspawns` command to include all active rarity tiers in the display
 - **Pagination Enhancement**: Added next/previous navigation buttons to `lockedspawns` command for better navigation through locked characters (20 per page)
 
 # User Preferences
@@ -139,9 +117,8 @@ Preferred communication style: Simple, everyday language.
 - **Database Indexing**: Strategic indexes on frequently queried fields
 
 ## Rarity System
-- **Tiered Rarity**: 8-tier system with weighted spawn rates
-  - Worn 🟤 (~70%), Gear ⚙️ (~20%), Wild 🌿 (~6%), Vortex 🌀 (~3%)
-  - Void 🌑 (~0.8%), Blaze 🔥 (~0.15%), Nebula 🌌 (~0.04%), Apex 👑 (~0.01%)
+- **Tiered Rarity**: 5-tier system with weighted spawn rates
+  - Worn 🟤 (~70%), Gear ⚙️ (~20%), Blaze 🔥 (~0.15%), Nebula 🌌 (~0.04%), Apex 👑 (~0.01%)
 - **Weighted Selection**: System picks rarity first using weights, then selects random character from that rarity
 - **Chat-Specific Spawning**: Nebula and Apex only spawn in the designated main group chat
 - **Auto-incrementing IDs**: Sequence-based character ID generation

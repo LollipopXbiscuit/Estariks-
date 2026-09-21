@@ -62,9 +62,6 @@ async def lockspawn(client, message):
     rarity_emojis = {
         "Worn": "🟤",
         "Gear": "⚙️",
-        "Wild": "🌿",
-        "Vortex": "🌀",
-        "Void": "🌑",
         "Blaze": "🔥",
         "Nebula": "🌌",
         "Apex": "👑"
@@ -158,9 +155,6 @@ async def lockedspawns(client, message, page=0):
     rarity_emojis = {
         "Worn": "🟤",
         "Gear": "⚙️",
-        "Wild": "🌿",
-        "Vortex": "🌀",
-        "Void": "🌑",
         "Blaze": "🔥",
         "Nebula": "🌌",
         "Apex": "👑"
@@ -168,7 +162,7 @@ async def lockedspawns(client, message, page=0):
     
     message_text = f"🔒 **Locked Spawn Characters** - Page {page+1}/{total_pages}\n"
     
-    for rarity in ["Apex", "Nebula", "Blaze", "Void", "Vortex", "Wild", "Gear", "Worn"]:
+    for rarity in ["Apex", "Nebula", "Blaze", "Gear", "Worn"]:
         if rarity in rarity_groups:
             rarity_emoji = rarity_emojis.get(rarity, "✨")
             message_text += f"\n{rarity_emoji} **{rarity}:**\n"
@@ -229,9 +223,6 @@ async def lockedspawns_callback(client, callback_query):
         rarity_emojis = {
             "Worn": "🟤",
             "Gear": "⚙️",
-            "Wild": "🌿",
-            "Vortex": "🌀",
-            "Void": "🌑",
             "Blaze": "🔥",
             "Nebula": "🌌",
             "Apex": "👑"
@@ -239,7 +230,7 @@ async def lockedspawns_callback(client, callback_query):
         
         message_text = f"🔒 **Locked Spawn Characters** - Page {page+1}/{total_pages}\n"
         
-        for rarity in ["Apex", "Nebula", "Blaze", "Void", "Vortex", "Wild", "Gear", "Worn"]:
+        for rarity in ["Apex", "Nebula", "Blaze", "Gear", "Worn"]:
             if rarity in rarity_groups:
                 rarity_emoji = rarity_emojis.get(rarity, "✨")
                 message_text += f"\n{rarity_emoji} **{rarity}:**\n"
@@ -334,8 +325,8 @@ async def lockspawn_ptb(update: Update, context: CallbackContext):
     })
     
     rarity_emojis = {
-        "Worn": "🟤", "Gear": "⚙️", "Wild": "🌿", "Vortex": "🌀",
-        "Void": "🌑", "Blaze": "🔥", "Nebula": "🌌", "Apex": "👑"
+        "Worn": "🟤", "Gear": "⚙️", "Blaze": "🔥",
+        "Nebula": "🌌", "Apex": "👑"
     }
     
     rarity_emoji = rarity_emojis.get(character.get('rarity', 'Worn'), "✨")
@@ -416,13 +407,13 @@ async def lockedspawns_ptb(update: Update, context: CallbackContext, page=0):
         rarity_groups[rarity].append(char)
     
     rarity_emojis = {
-        "Worn": "🟤", "Gear": "⚙️", "Wild": "🌿", "Vortex": "🌀",
-        "Void": "🌑", "Blaze": "🔥", "Nebula": "🌌", "Apex": "👑"
+        "Worn": "🟤", "Gear": "⚙️", "Blaze": "🔥",
+        "Nebula": "🌌", "Apex": "👑"
     }
     
     message_text = f"🔒 **Locked Spawn Characters** - Page {page+1}/{total_pages}\n"
     
-    for rarity in ["Apex", "Nebula", "Blaze", "Void", "Vortex", "Wild", "Gear", "Worn"]:
+    for rarity in ["Apex", "Nebula", "Blaze", "Gear", "Worn"]:
         if rarity in rarity_groups:
             rarity_emoji = rarity_emojis.get(rarity, "✨")
             message_text += f"\n{rarity_emoji} **{rarity}:**\n"
@@ -477,13 +468,13 @@ async def lockedspawns_callback_ptb(update: Update, context: CallbackContext):
             rarity_groups[rarity].append(char)
         
         rarity_emojis = {
-            "Worn": "🟤", "Gear": "⚙️", "Wild": "🌿", "Vortex": "🌀",
-            "Void": "🌑", "Blaze": "🔥", "Nebula": "🌌", "Apex": "👑"
+            "Worn": "🟤", "Gear": "⚙️", "Blaze": "🔥",
+            "Nebula": "🌌", "Apex": "👑"
         }
         
         message_text = f"🔒 **Locked Spawn Characters** - Page {page+1}/{total_pages}\n"
         
-        for rarity in ["Apex", "Nebula", "Blaze", "Void", "Vortex", "Wild", "Gear", "Worn"]:
+        for rarity in ["Apex", "Nebula", "Blaze", "Gear", "Worn"]:
             if rarity in rarity_groups:
                 rarity_emoji = rarity_emojis.get(rarity, "✨")
                 message_text += f"\n{rarity_emoji} **{rarity}:**\n"
@@ -519,9 +510,6 @@ async def rarity_ptb(update: Update, context: CallbackContext):
         "🎐 𝘙𝘦𝘨𝘶𝘭𝘢𝘳 𝘚𝘱𝘢𝘸𝘯𝘴 (𝘦𝘷𝘦𝘳𝘺 100 𝘮𝘦𝘴𝘴𝘢𝘨𝘦𝘴)\n\n"
         "🟤 𝘞𝘰𝘳𝘯 : 70% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
         "⚙️ 𝘎𝘦𝘢𝘳 : 20% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🌿 𝘞𝘪𝘭𝘥 : 6% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🌀 𝘝𝘰𝘳𝘵𝘦𝘹 : 3% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
-        "🌑 𝘝𝘰𝘪𝘥 : 0.8% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
         "🔥 𝘉𝘭𝘢𝘻𝘦 : 0.15% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
         "🌌 𝘕𝘦𝘣𝘶𝘭𝘢 : 0.04% 𝘤𝘩𝘢𝘯𝘤𝘦\n"
         "👑 𝘈𝘱𝘦𝘹 : 0.01% 𝘤𝘩𝘢𝘯𝘤𝘦"
