@@ -1290,38 +1290,16 @@ async def find(update: Update, context: CallbackContext) -> None:
                 caption += f"{i}. <a href='tg://user?id={catcher['user_id']}'>{catcher['name']}</a> — {catcher['count']}x\n"
         
         # Process URL and send
-        from shivu import process_image_url
+        from shivu import process_image_url, send_character_media
         processed_url = await process_image_url(character['img_url'])
         
-        if await is_video_character(character):
-            try:
-                await context.bot.send_video(
-                    chat_id=update.effective_chat.id,
-                    video=processed_url,
-                    caption=caption,
-                    parse_mode='HTML'
-                )
-            except Exception as video_error:
-                await context.bot.send_photo(
-                    chat_id=update.effective_chat.id,
-                    photo=processed_url,
-                    caption=f"🎬 {caption}",
-                    parse_mode='HTML'
-                )
-        else:
-            try:
-                await context.bot.send_photo(
-                    chat_id=update.effective_chat.id,
-                    photo=processed_url,
-                    caption=caption,
-                    parse_mode='HTML'
-                )
-            except Exception as photo_error:
-                # Last resort: send text with link
-                await update.message.reply_text(
-                    f"{caption}\n🖼 <a href='{processed_url}'>Character Image</a>",
-                    parse_mode='HTML'
-                )
+        await send_character_media(
+            bot=context.bot,
+            chat_id=update.effective_chat.id,
+            media_url=processed_url,
+            caption=caption,
+            is_video=await is_video_character(character),
+        )
                 
     except Exception as e:
         await update.message.reply_text(f'❌ Error finding character: {str(e)}')

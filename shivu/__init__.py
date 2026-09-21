@@ -8,6 +8,7 @@ import requests
 import tempfile
 import io
 import aiohttp
+from urllib.parse import urlparse
 
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
@@ -122,30 +123,30 @@ async def process_image_url(url):
 
 async def send_character_media(bot, chat_id, media_url, caption, is_video):
     """Send a character image or video without silently changing its media type."""
-    if not is_video:
+    try:
+        if is_video:
+            return await bot.send_video(
+                chat_id=chat_id,
+                video=media_url,
+                caption=caption,
+                parse_mode='HTML',
+            )
         return await bot.send_photo(
             chat_id=chat_id,
             photo=media_url,
             caption=caption,
             parse_mode='HTML',
         )
-
-    try:
-        return await bot.send_video(
-            chat_id=chat_id,
-            video=media_url,
-            caption=caption,
-            parse_mode='HTML',
-        )
     except Exception as direct_error:
-        # Telegram's servers cannot fetch some valid MP4 URLs (CDN headers,
-        # redirects, or a missing video content type). Upload the bytes from
-        # this process instead of falling back to a still image.
+        # Telegram's servers cannot fetch some valid remote media URLs (CDN
+        # headers, redirects, or an incorrect content type). Upload the bytes
+        # from this process instead of changing a video into a still image.
         if not isinstance(media_url, str) or not media_url.startswith(('http://', 'https://')):
             raise
 
         LOGGER.warning(
-            "Direct video send failed; downloading before retry: %s",
+            "Direct %s send failed; downloading before retry: %s",
+            "video" if is_video else "photo",
             direct_error,
         )
 
@@ -156,21 +157,29 @@ async def send_character_media(bot, chat_id, media_url, caption, is_video):
         ) as session:
             async with session.get(media_url, allow_redirects=True) as response:
                 response.raise_for_status()
-                video_bytes = io.BytesIO()
+                media_bytes = io.BytesIO()
                 async for chunk in response.content.iter_chunked(1024 * 1024):
-                    video_bytes.write(chunk)
+                    media_bytes.write(chunk)
 
-        video_bytes.seek(0)
-        video_bytes.name = 'character.mp4'
+        media_bytes.seek(0)
+        suffix = '.mp4' if is_video else (urlparse(media_url).path.rsplit('.', 1)[-1] if '.' in urlparse(media_url).path else 'jpg')
+        media_bytes.name = f'character.{suffix.lstrip(".")}'
         try:
-            return await bot.send_video(
+            if is_video:
+                return await bot.send_video(
+                    chat_id=chat_id,
+                    video=media_bytes,
+                    caption=caption,
+                    parse_mode='HTML',
+                )
+            return await bot.send_photo(
                 chat_id=chat_id,
-                video=video_bytes,
+                photo=media_bytes,
                 caption=caption,
                 parse_mode='HTML',
             )
         except Exception as upload_error:
             raise RuntimeError(
-                f"Telegram rejected the direct video URL ({direct_error}) "
-                f"and the downloaded MP4 upload ({upload_error})"
+                f"Telegram rejected the direct {'video' if is_video else 'photo'} URL "
+                f"({direct_error}) and the downloaded media upload ({upload_error})"
             ) from upload_error
