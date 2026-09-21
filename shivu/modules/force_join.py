@@ -314,7 +314,7 @@ async def force_join_pyro_callback(client, callback_query):
 
 
 application.add_handler(
-    MessageHandler(telegram_filters.ALL, force_join_ptb_message, block=True),
+    MessageHandler(telegram_filters.COMMAND, force_join_ptb_message, block=True),
     group=-1,
 )
 application.add_handler(
