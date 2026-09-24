@@ -601,11 +601,28 @@ async def run_bot():
         await application.updater.start_polling(drop_pending_updates=True)
         await asyncio.Event().wait()
 
+async def stop_pyrogram_client():
+    """Stop Pyrogram cleanly, including after a partial startup failure."""
+    if getattr(shivuu, "is_initialized", False):
+        await shivuu.stop()
+        return
+
+    # Client.start() initializes dispatcher workers before authorization
+    # finishes. If authorization fails, Client.stop() cannot clean them up
+    # because the client never reaches its initialized state.
+    dispatcher = getattr(shivuu, "dispatcher", None)
+    if dispatcher and getattr(dispatcher, "handler_worker_tasks", None):
+        await dispatcher.stop()
+
+    if shivuu.is_connected:
+        await shivuu.disconnect()
+
+
 async def main_async():
     """Run both web server and bot"""
-    await shivuu.start()
-    LOGGER.info("Pyrogram client started")
     try:
+        await shivuu.start()
+        LOGGER.info("Pyrogram client started")
         await asyncio.gather(
             run_web_server(),
             run_bot()
@@ -615,8 +632,7 @@ async def main_async():
             await application.stop()
         if application.initialized:
             await application.shutdown()
-        if shivuu.is_connected:
-            await shivuu.stop()
+        await stop_pyrogram_client()
 
 def main() -> None:
     """Run bot."""
