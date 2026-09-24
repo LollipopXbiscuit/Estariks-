@@ -121,27 +121,125 @@ async def process_image_url(url):
     return url
 
 
-async def send_character_media(bot, chat_id, media_url, caption, is_video):
-    """Send a character image or video without silently changing its media type."""
-    try:
-        if is_video:
-            return await bot.send_video(
-                chat_id=chat_id,
-                video=media_url,
-                caption=caption,
-                parse_mode='HTML',
+def telegram_message_media(message, default_media_type=None, default_is_video=False):
+    """Return the Telegram file id and media kind from a sent message."""
+    for media_type in ('video', 'animation', 'document'):
+        media = getattr(message, media_type, None)
+        if media:
+            return media.file_id, media_type, (
+                media_type in ('video', 'animation')
+                or (media_type == 'document' and str(getattr(media, 'mime_type', '')).startswith('video/'))
             )
-        return await bot.send_photo(
-            chat_id=chat_id,
-            photo=media_url,
-            caption=caption,
-            parse_mode='HTML',
+
+    photos = getattr(message, 'photo', None)
+    if photos:
+        photo = photos[-1] if isinstance(photos, (list, tuple)) else photos
+        return photo.file_id, 'photo', False
+
+    return None, default_media_type, default_is_video
+
+
+async def get_character_media_source(character):
+    """Resolve a character's reusable Telegram file id or a remote media URL."""
+    media_type = character.get('media_type')
+    is_video = bool(
+        character.get('is_video')
+        or media_type in ('video', 'animation')
+        or (media_type == 'document' and 'video' in str(character.get('img_url', '')).lower())
+        or '🎬' in str(character.get('name', ''))
+    )
+    media_file_id = character.get('media_file_id')
+    if media_file_id:
+        return media_file_id, media_type, is_video
+
+    media_url = str(character.get('img_url') or '')
+    parsed_url = urlparse(media_url)
+    is_telegram_download_url = (
+        parsed_url.netloc.lower() == 'api.telegram.org'
+        and parsed_url.path.startswith('/file/bot')
+    )
+    is_non_url_path = not parsed_url.scheme
+
+    # Telegram file download paths are temporary and must not be reused as
+    # media URLs. Recover the stable file_id from the bot's channel copy.
+    if is_telegram_download_url or is_non_url_path:
+        message_id = character.get('message_id')
+        if message_id:
+            try:
+                channel_message = await shivuu.get_messages(
+                    CHARA_CHANNEL_ID,
+                    int(message_id),
+                )
+                media_file_id, media_type, is_video = telegram_message_media(
+                    channel_message,
+                    media_type,
+                    is_video,
+                )
+                if media_file_id:
+                    character.update({
+                        'media_file_id': media_file_id,
+                        'media_type': media_type,
+                        'is_video': is_video,
+                    })
+                    if character.get('id') is not None:
+                        await collection.update_one(
+                            {'id': str(character['id'])},
+                            {'$set': {
+                                'media_file_id': media_file_id,
+                                'media_type': media_type,
+                                'is_video': is_video,
+                            }},
+                        )
+                    return media_file_id, media_type, is_video
+            except Exception as error:
+                LOGGER.warning(
+                    "Could not recover Telegram media for character %s: %s",
+                    character.get('id', 'unknown'),
+                    error,
+                )
+        raise ValueError(
+            "This character has an expired Telegram file path and no reusable channel copy."
         )
+
+    return await process_image_url(media_url), media_type, is_video
+
+
+async def send_character_media(
+    bot,
+    chat_id,
+    media_url,
+    caption,
+    is_video,
+    media_type=None,
+    reply_markup=None,
+):
+    """Send a character image or video without silently changing its media type."""
+    def send_media(source):
+        options = {
+            'chat_id': chat_id,
+            'caption': caption,
+            'parse_mode': 'HTML',
+            'reply_markup': reply_markup,
+        }
+        if media_type == 'animation':
+            return bot.send_animation(animation=source, **options)
+        if media_type == 'document':
+            return bot.send_document(document=source, **options)
+        if is_video:
+            return bot.send_video(video=source, **options)
+        return bot.send_photo(photo=source, **options)
+
+    try:
+        return await send_media(media_url)
     except Exception as direct_error:
         # Telegram's servers cannot fetch some valid remote media URLs (CDN
         # headers, redirects, or an incorrect content type). Upload the bytes
         # from this process instead of changing a video into a still image.
-        if not isinstance(media_url, str) or not media_url.startswith(('http://', 'https://')):
+        if (
+            not isinstance(media_url, str)
+            or not media_url.startswith(('http://', 'https://'))
+            or 'api.telegram.org/file/bot' in media_url
+        ):
             raise
 
         LOGGER.warning(
@@ -162,22 +260,18 @@ async def send_character_media(bot, chat_id, media_url, caption, is_video):
                     media_bytes.write(chunk)
 
         media_bytes.seek(0)
-        suffix = '.mp4' if is_video else (urlparse(media_url).path.rsplit('.', 1)[-1] if '.' in urlparse(media_url).path else 'jpg')
+        if media_type == 'animation':
+            suffix = 'gif'
+        elif media_type == 'document':
+            suffix = 'mp4' if is_video else 'bin'
+        else:
+            suffix = 'mp4' if is_video else (
+                urlparse(media_url).path.rsplit('.', 1)[-1]
+                if '.' in urlparse(media_url).path else 'jpg'
+            )
         media_bytes.name = f'character.{suffix.lstrip(".")}'
         try:
-            if is_video:
-                return await bot.send_video(
-                    chat_id=chat_id,
-                    video=media_bytes,
-                    caption=caption,
-                    parse_mode='HTML',
-                )
-            return await bot.send_photo(
-                chat_id=chat_id,
-                photo=media_bytes,
-                caption=caption,
-                parse_mode='HTML',
-            )
+            return await send_media(media_bytes)
         except Exception as upload_error:
             raise RuntimeError(
                 f"Telegram rejected the direct {'video' if is_video else 'photo'} URL "

@@ -84,6 +84,11 @@ def is_video_character(character):
     """Check if a character is a video by URL extension or name marker"""
     if not character:
         return False
+
+    if character.get('is_video') or character.get('media_type') in ('video', 'animation'):
+        return True
+    if character.get('media_type') == 'document' and is_video_url(character.get('img_url', '')):
+        return True
     
     url = character.get('img_url', '')
     if is_video_url(url):
@@ -258,20 +263,16 @@ async def send_image(update: Update, context: CallbackContext) -> None:
     caption = f"{rarity_emoji} 𝘢 𝘱𝘳𝘦𝘤𝘪𝘰𝘶𝘴 𝘴𝘰𝘶𝘭 𝘩𝘢𝘴 𝘦𝘯𝘵𝘦𝘳𝘦𝘥 𝘵𝘩𝘦 𝘤𝘩𝘢𝘵, 𝘶𝘴𝘦 /invite 𝘵𝘰 𝘵𝘢𝘬𝘦 𝘵𝘩𝘦𝘮 𝘪𝘯𝘵𝘰 𝘺𝘰𝘶𝘳 𝘤𝘩𝘢𝘮𝘣𝘦𝘳 🗼"
 
     try:
-        from shivu import process_image_url, send_character_media
-        img_url = character['img_url']
-        # If it's a telegram file path, use it directly as photo/video
-        if img_url.startswith('http'):
-            processed_url = await process_image_url(img_url)
-        else:
-            processed_url = img_url
+        from shivu import get_character_media_source, send_character_media
+        media_source, media_type, is_video = await get_character_media_source(character)
         
         await send_character_media(
             bot=context.bot,
             chat_id=chat_id,
-            media_url=processed_url,
+            media_url=media_source,
             caption=caption,
-            is_video=is_video_character(character),
+            is_video=is_video,
+            media_type=media_type,
         )
     except Exception as e:
         LOGGER.error(f"Error sending character image: {str(e)}")

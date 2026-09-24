@@ -4,10 +4,32 @@ from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
 from telegram.ext import CommandHandler, CallbackQueryHandler, CallbackContext
 from html import escape
 
-from shivu import user_collection, shivuu, collection, application
+from shivu import (
+    user_collection,
+    shivuu,
+    collection,
+    application,
+    get_character_media_source,
+)
 from shivu.config import Config
 
 pending_trades = {}
+
+
+async def reply_character_preview(message, character, caption, reply_markup, parse_mode):
+    source, media_type, is_video = await get_character_media_source(character)
+    options = {
+        'caption': caption,
+        'parse_mode': parse_mode,
+        'reply_markup': reply_markup,
+    }
+    if media_type == 'animation':
+        return await message.reply_animation(animation=source, **options)
+    if media_type == 'document':
+        return await message.reply_document(document=source, **options)
+    if is_video:
+        return await message.reply_video(video=source, **options)
+    return await message.reply_photo(photo=source, **options)
 
 
 @shivuu.on_message(filters.command("trade"))
@@ -213,13 +235,8 @@ async def gift(client, message):
 
     try:
         if 'img_url' in character:
-            from shivu import process_image_url
-            processed_url = await process_image_url(character['img_url'])
-            await message.reply_photo(
-                photo=processed_url,
-                caption=caption,
-                parse_mode=enums.ParseMode.HTML,
-                reply_markup=keyboard
+            await reply_character_preview(
+                message, character, caption, keyboard, enums.ParseMode.HTML
             )
         else:
             await message.reply_text(caption, parse_mode=enums.ParseMode.HTML, reply_markup=keyboard)
@@ -438,13 +455,8 @@ async def gift_ptb(update: Update, context: CallbackContext):
     
     try:
         if 'img_url' in character:
-            from shivu import process_image_url
-            processed_url = await process_image_url(character['img_url'])
-            await update.message.reply_photo(
-                photo=processed_url,
-                caption=caption,
-                parse_mode='HTML',
-                reply_markup=keyboard
+            await reply_character_preview(
+                update.message, character, caption, keyboard, 'HTML'
             )
         else:
             await update.message.reply_text(caption, parse_mode='HTML', reply_markup=keyboard)

@@ -14,6 +14,69 @@ from pyrogram.errors import UserNotParticipant, ChatAdminRequired, PeerIdInvalid
 from shivu import collection, user_collection, application, SUPPORT_CHAT, CHARA_CHANNEL_ID, shivuu, sudo_users
 from shivu.config import Config
 
+
+async def _resolve_display_media(character):
+    from shivu import get_character_media_source
+
+    source, media_type, is_video = await get_character_media_source(character)
+    character.update({
+        'media_type': media_type,
+        'is_video': is_video,
+    })
+    return source
+
+
+async def reply_character_media(message, character, source, caption, reply_markup):
+    media_type = character.get('media_type')
+    is_video = character.get('is_video') or media_type in ('video', 'animation')
+    parse_mode = (
+        'HTML'
+        if message.__class__.__module__.startswith('telegram.')
+        else enums.ParseMode.HTML
+    )
+    if media_type == 'animation':
+        return await message.reply_animation(
+            animation=source, caption=caption, parse_mode=parse_mode,
+            reply_markup=reply_markup,
+        )
+    if media_type == 'document':
+        return await message.reply_document(
+            document=source, caption=caption, parse_mode=parse_mode,
+            reply_markup=reply_markup,
+        )
+    if is_video:
+        return await message.reply_video(
+            video=source, caption=caption, parse_mode=parse_mode,
+            reply_markup=reply_markup,
+        )
+    return await message.reply_photo(
+        photo=source, caption=caption, parse_mode=parse_mode,
+        reply_markup=reply_markup,
+    )
+
+
+async def edit_character_media(query, character, source, caption, reply_markup):
+    from telegram import (
+        InputMediaAnimation,
+        InputMediaDocument,
+        InputMediaPhoto,
+        InputMediaVideo,
+    )
+
+    media_type = character.get('media_type')
+    is_video = character.get('is_video') or media_type in ('video', 'animation')
+    if media_type == 'animation':
+        media = InputMediaAnimation(media=source, caption=caption, parse_mode='HTML')
+    elif media_type == 'document':
+        media = InputMediaDocument(media=source, caption=caption, parse_mode='HTML')
+    elif is_video:
+        media = InputMediaVideo(media=source, caption=caption, parse_mode='HTML')
+    else:
+        media = InputMediaPhoto(media=source, caption=caption, parse_mode='HTML')
+    await query.edit_message_media(media=media, reply_markup=reply_markup)
+    await query.answer()
+
+
 async def get_character_display_url(character, char_id=None, user_id=None):
     """Get the correct URL to display for a character, respecting owner-specific slots"""
     user_id_str = str(user_id) if user_id else None
@@ -44,8 +107,14 @@ async def get_character_display_url(character, char_id=None, user_id=None):
                         return slot_data['url']
                     elif isinstance(slot_data, str):
                         return slot_data
-            # Return fresh_char's img_url if custom slots not found
-            return fresh_char.get('img_url', '')
+            # Otherwise use the stable file id or recover it from the channel copy.
+            source = await _resolve_display_media(fresh_char)
+            character.update({
+                key: fresh_char[key]
+                for key in ('media_file_id', 'media_type', 'is_video', 'message_id')
+                if key in fresh_char
+            })
+            return source
     
     # Fallback to character object's data
     if character.get('rarity') == 'Custom':
@@ -70,7 +139,7 @@ async def get_character_display_url(character, char_id=None, user_id=None):
                 elif isinstance(slot_data, str):
                     return slot_data
     
-    return character.get('img_url', '')
+    return await _resolve_display_media(character)
 
 
 def is_video_url(url):
@@ -83,6 +152,9 @@ async def is_video_character(character, char_id=None, user_id=None):
     """Check if a character is a video by URL extension, metadata type, or name marker"""
     if not character:
         return False
+
+    if character.get('is_video') or character.get('media_type') in ('video', 'animation'):
+        return True
     
     # For custom characters, also check the 'type' field in slot metadata
     user_id_str = str(user_id) if user_id else None
@@ -475,25 +547,14 @@ async def harem(update: Update, context: CallbackContext, page=0) -> None:
         if fav_character and 'img_url' in fav_character:
             if update.message:
                 try:
-                    from shivu import process_image_url, LOGGER
                     user_id = update.effective_user.id if update.effective_user else None
-                    processed_url = await process_image_url(await get_character_display_url(fav_character, fav_character_id, user_id))
-                    
-                    # Check if it's a video and use appropriate send method
-                    if await is_video_character(fav_character, fav_character_id, user_id):
-                        try:
-                            await update.message.reply_video(video=processed_url, parse_mode='HTML', caption=harem_message, reply_markup=reply_markup)
-                        except Exception as video_error:
-                            # Fallback: try as photo if video fails
-                            LOGGER.warning(f"Harem: Favorite video send failed, URL: {processed_url[:100]}, Error: {str(video_error)}. Trying as photo.")
-                            try:
-                                await update.message.reply_photo(photo=processed_url, parse_mode='HTML', caption=f"🎬 [Video] {harem_message}", reply_markup=reply_markup)
-                            except Exception as photo_error:
-                                # If media fails, send text instead
-                                LOGGER.error(f"Harem: Both favorite video and photo failed, URL: {processed_url[:100]}")
-                                await update.message.reply_text(harem_message, parse_mode='HTML', reply_markup=reply_markup)
-                    else:
-                        await update.message.reply_photo(photo=processed_url, parse_mode='HTML', caption=harem_message, reply_markup=reply_markup)
+                    media_source = await get_character_display_url(
+                        fav_character, fav_character_id, user_id
+                    )
+                    await reply_character_media(
+                        update.message, fav_character, media_source,
+                        harem_message, reply_markup,
+                    )
                 except Exception as e:
                     # If media fails, send text instead
                     await update.message.reply_text(harem_message, parse_mode='HTML', reply_markup=reply_markup)
@@ -508,9 +569,10 @@ async def harem(update: Update, context: CallbackContext, page=0) -> None:
                     # Check if it's a video and use appropriate media type
                     if await is_video_character(fav_character, fav_character_id, user_id):
                         try:
-                            media = InputMediaVideo(media=processed_url, caption=harem_message, parse_mode='HTML')
-                            await update.callback_query.edit_message_media(media=media, reply_markup=reply_markup)
-                            await update.callback_query.answer()
+                            await edit_character_media(
+                                update.callback_query, fav_character,
+                                processed_url, harem_message, reply_markup,
+                            )
                         except Exception as video_error:
                             # Fallback: try as photo if video fails
                             LOGGER.warning(f"Harem callback: Favorite video edit failed, URL: {processed_url[:100]}, Error: {str(video_error)}. Trying as photo.")
@@ -556,14 +618,23 @@ async def harem(update: Update, context: CallbackContext, page=0) -> None:
                             
                             if await is_video_character(random_character, random_character.get("id"), user_id):
                                 try:
-                                    await update.message.reply_video(video=processed_url, parse_mode='HTML', caption=harem_message, reply_markup=reply_markup)
+                                    await reply_character_media(
+                                        update.message, random_character, processed_url,
+                                        harem_message, reply_markup,
+                                    )
                                 except Exception:
                                     try:
-                                        await update.message.reply_photo(photo=processed_url, parse_mode='HTML', caption=harem_message, reply_markup=reply_markup)
+                                        await update.message.reply_text(
+                                            harem_message, parse_mode='HTML',
+                                            reply_markup=reply_markup,
+                                        )
                                     except Exception:
                                         await update.message.reply_text(harem_message, parse_mode='HTML', reply_markup=reply_markup)
                             else:
-                                await update.message.reply_photo(photo=processed_url, parse_mode='HTML', caption=harem_message, reply_markup=reply_markup)
+                                await reply_character_media(
+                                    update.message, random_character, processed_url,
+                                    harem_message, reply_markup,
+                                )
                         except Exception:
                             await update.message.reply_text(harem_message, parse_mode='HTML', reply_markup=reply_markup)
                     else:
@@ -575,9 +646,10 @@ async def harem(update: Update, context: CallbackContext, page=0) -> None:
                             
                             if await is_video_character(random_character, random_character.get("id"), user_id):
                                 try:
-                                    media = InputMediaVideo(media=processed_url, caption=harem_message, parse_mode='HTML')
-                                    await update.callback_query.edit_message_media(media=media, reply_markup=reply_markup)
-                                    await update.callback_query.answer()
+                                await edit_character_media(
+                                    update.callback_query, random_character,
+                                    processed_url, harem_message, reply_markup,
+                                )
                                 except Exception:
                                     try:
                                         media = InputMediaPhoto(media=processed_url, caption=harem_message, parse_mode='HTML')
@@ -624,18 +696,27 @@ async def harem(update: Update, context: CallbackContext, page=0) -> None:
                         # Check if it's a video and use appropriate send method
                         if await is_video_character(random_character, random_character.get("id"), user_id_no_fav):
                             try:
-                                await update.message.reply_video(video=processed_url, parse_mode='HTML', caption=harem_message, reply_markup=reply_markup)
+                                await reply_character_media(
+                                    update.message, random_character, processed_url,
+                                    harem_message, reply_markup,
+                                )
                             except Exception as video_error:
                                 # Fallback: try as photo if video fails
                                 LOGGER.warning(f"Harem: Random video send failed, URL: {processed_url[:100]}, Error: {str(video_error)}. Trying as photo.")
                                 try:
-                                    await update.message.reply_photo(photo=processed_url, parse_mode='HTML', caption=f"🎬 [Video] {harem_message}", reply_markup=reply_markup)
+                                    await update.message.reply_text(
+                                        harem_message, parse_mode='HTML',
+                                        reply_markup=reply_markup,
+                                    )
                                 except Exception as photo_error:
                                     # If media fails, send text instead
                                     LOGGER.error(f"Harem: Both random video and photo failed, URL: {processed_url[:100]}")
                                     await update.message.reply_text(harem_message, parse_mode='HTML', reply_markup=reply_markup)
                         else:
-                            await update.message.reply_photo(photo=processed_url, parse_mode='HTML', caption=harem_message, reply_markup=reply_markup)
+                            await reply_character_media(
+                                update.message, random_character, processed_url,
+                                harem_message, reply_markup,
+                            )
                     except Exception as e:
                         # If media fails, send text instead
                         await update.message.reply_text(harem_message, parse_mode='HTML', reply_markup=reply_markup)
@@ -650,9 +731,10 @@ async def harem(update: Update, context: CallbackContext, page=0) -> None:
                         # Check if it's a video and use appropriate media type
                         if await is_video_character(random_character, random_character.get("id"), user_id_no_fav):
                             try:
-                                media = InputMediaVideo(media=processed_url, caption=harem_message, parse_mode='HTML')
-                                await update.callback_query.edit_message_media(media=media, reply_markup=reply_markup)
-                                await update.callback_query.answer()
+                                await edit_character_media(
+                                    update.callback_query, random_character,
+                                    processed_url, harem_message, reply_markup,
+                                )
                             except Exception as video_error:
                                 # Fallback: try as photo if video fails
                                 LOGGER.warning(f"Harem callback: Random video edit failed, URL: {processed_url[:100]}, Error: {str(video_error)}. Trying as photo.")
@@ -792,41 +874,11 @@ async def fav(client, message):
     
     try:
         if 'img_url' in character:
-            from shivu import process_image_url, LOGGER
             user_id_pyrogram = message.from_user.id if message.from_user else None
             display_url = await get_character_display_url(character, character.get('id'), user_id_pyrogram)
-            processed_url = await process_image_url(display_url)
-            
-            # Check if it's a video and use appropriate send method
-            if await is_video_character(character, character.get('id')):
-                try:
-                    await message.reply_video(
-                        video=processed_url,
-                        caption=caption,
-                        parse_mode=enums.ParseMode.HTML,
-                        reply_markup=keyboard
-                    )
-                except Exception as video_error:
-                    # Fallback: try sending as photo if video fails
-                    LOGGER.warning(f"/fav: Video send failed for character {character['id']}, URL: {processed_url[:100]}, Error: {str(video_error)}. Trying as photo.")
-                    try:
-                        await message.reply_photo(
-                            photo=processed_url,
-                            caption=f"🎬 [Video] {caption}",
-                            parse_mode=enums.ParseMode.HTML,
-                            reply_markup=keyboard
-                        )
-                    except Exception as photo_error:
-                        # Last resort: send text
-                        LOGGER.error(f"/fav: Both video and photo failed for character {character['id']}, URL: {processed_url[:100]}")
-                        await message.reply_text(f"{caption}\n\n⚠️ Media display failed.", parse_mode=enums.ParseMode.HTML, reply_markup=keyboard)
-            else:
-                await message.reply_photo(
-                    photo=processed_url,
-                    caption=caption,
-                    parse_mode=enums.ParseMode.HTML,
-                    reply_markup=keyboard
-                )
+            await reply_character_media(
+                message, character, display_url, caption, keyboard
+            )
         else:
             await message.reply_text(caption, parse_mode=enums.ParseMode.HTML, reply_markup=keyboard)
     except Exception as e:
@@ -1009,38 +1061,11 @@ async def fav_ptb(update: Update, context: CallbackContext):
     
     try:
         if 'img_url' in character:
-            from shivu import process_image_url, LOGGER
             user_id_ptb = update.effective_user.id if update.effective_user else None
             display_url = await get_character_display_url(character, character.get('id'), user_id_ptb)
-            processed_url = await process_image_url(display_url)
-            
-            # Check if it's a video
-            if await is_video_character(character, character.get('id')):
-                try:
-                    await update.message.reply_video(
-                        video=processed_url,
-                        caption=caption,
-                        parse_mode='HTML',
-                        reply_markup=keyboard
-                    )
-                except Exception as video_error:
-                    LOGGER.warning(f"/fav PTB: Video failed, trying photo")
-                    try:
-                        await update.message.reply_photo(
-                            photo=processed_url,
-                            caption=f"🎬 [Video] {caption}",
-                            parse_mode='HTML',
-                            reply_markup=keyboard
-                        )
-                    except:
-                        await update.message.reply_text(f"{caption}\n\n⚠️ Media display failed.", parse_mode='HTML', reply_markup=keyboard)
-            else:
-                await update.message.reply_photo(
-                    photo=processed_url,
-                    caption=caption,
-                    parse_mode='HTML',
-                    reply_markup=keyboard
-                )
+            await reply_character_media(
+                update.message, character, display_url, caption, keyboard
+            )
         else:
             await update.message.reply_text(caption, parse_mode='HTML', reply_markup=keyboard)
     except Exception as e:

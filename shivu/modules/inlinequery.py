@@ -4,7 +4,15 @@ from html import escape
 from cachetools import TTLCache
 from pymongo import MongoClient, ASCENDING
 
-from telegram import Update, InlineQueryResultPhoto, InlineQueryResultVideo
+from telegram import (
+    Update,
+    InlineQueryResultPhoto,
+    InlineQueryResultVideo,
+    InlineQueryResultCachedPhoto,
+    InlineQueryResultCachedVideo,
+    InlineQueryResultCachedDocument,
+    InlineQueryResultCachedGif,
+)
 from telegram.ext import InlineQueryHandler, CallbackContext, CommandHandler 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
@@ -193,6 +201,39 @@ async def inlinequery(update: Update, context: CallbackContext) -> None:
             # Don't pass user_id for inline queries to skip custom slot lookups
             display_url = await get_character_display_url(character, character.get('id'), None)
             processed_url = await process_image_url(display_url)
+
+            file_id = character.get('media_file_id')
+            media_type = character.get('media_type')
+            result_id = f"{character['id']}_{time.time()}"
+            if file_id:
+                if media_type == 'animation':
+                    results.append(InlineQueryResultCachedGif(
+                        id=result_id,
+                        gif_file_id=file_id,
+                        title=f"{character['name']} - {character['anime']}",
+                        caption=caption,
+                    ))
+                elif media_type == 'document':
+                    results.append(InlineQueryResultCachedDocument(
+                        id=result_id,
+                        document_file_id=file_id,
+                        title=f"{character['name']} - {character['anime']}",
+                        caption=caption,
+                    ))
+                elif character.get('is_video') or media_type == 'video':
+                    results.append(InlineQueryResultCachedVideo(
+                        id=result_id,
+                        video_file_id=file_id,
+                        title=f"{character['name']} - {character['anime']}",
+                        caption=caption,
+                    ))
+                else:
+                    results.append(InlineQueryResultCachedPhoto(
+                        id=result_id,
+                        photo_file_id=file_id,
+                        caption=caption,
+                    ))
+                continue
             
             # Check if it's a video and use appropriate result type
             # Don't pass user_id for inline queries to avoid expensive database lookups

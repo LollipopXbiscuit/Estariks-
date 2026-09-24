@@ -22,6 +22,8 @@ from shivu import (
     user_collection,
     process_image_url,
     send_character_media,
+    get_character_media_source,
+    telegram_message_media,
 )
 from shivu.modules.harem import get_character_display_url
 
@@ -237,6 +239,11 @@ async def is_video_character(character, char_id=None, user_id=None):
     """Check if a character is a video by URL extension or name marker"""
     if not character:
         return False
+
+    if character.get('is_video') or character.get('media_type') in ('video', 'animation'):
+        return True
+    if character.get('media_type') == 'document' and is_video_url(character.get('img_url', '')):
+        return True
     
     # Check for 🎬 emoji marker first (fastest check)
     name = character.get('name', '')
@@ -385,6 +392,14 @@ async def send_upload_media(
             parse_mode='HTML',
             reply_markup=reply_markup
         )
+    if media_type == 'animation':
+        return await context.bot.send_animation(
+            chat_id=chat_id,
+            animation=media_url,
+            caption=caption,
+            parse_mode='HTML',
+            reply_markup=reply_markup
+        )
     if is_video:
         return await context.bot.send_video(
             chat_id=chat_id,
@@ -435,13 +450,19 @@ async def finalize_character_upload(context, payload):
         caption,
         media_type=payload.get('media_type')
     )
+    saved_file_id, saved_media_type, saved_is_video = telegram_message_media(
+        message,
+        payload.get('media_type'),
+        payload['is_video'],
+    )
     character = {
         'img_url': payload['img_url'],
         'name': payload['name'],
         'anime': payload['anime'],
         'rarity': payload['rarity'],
-        'is_video': payload['is_video'],
-        'media_type': payload.get('media_type'),
+        'is_video': saved_is_video,
+        'media_type': saved_media_type,
+        'media_file_id': saved_file_id or payload.get('media_file_id'),
         'id': character_id,
         'message_id': message.message_id,
     }
@@ -595,20 +616,20 @@ async def upload(update: Update, context: CallbackContext) -> None:
         media_type = None
         
         if target_message.photo:
-            file = await target_message.photo[-1].get_file()
-            img_url = file.file_path
+            img_url = target_message.photo[-1].file_id
             media_file_id = target_message.photo[-1].file_id
+            media_type = 'photo'
             media_attached = True
         elif target_message.video:
-            file = await target_message.video.get_file()
-            img_url = file.file_path
+            img_url = target_message.video.file_id
             media_file_id = target_message.video.file_id
+            media_type = 'video'
             is_video = True
             media_attached = True
         elif target_message.animation:
-            file = await target_message.animation.get_file()
-            img_url = file.file_path
+            img_url = target_message.animation.file_id
             media_file_id = target_message.animation.file_id
+            media_type = 'animation'
             is_video = True
             media_attached = True
         elif target_message.document:
@@ -618,8 +639,7 @@ async def upload(update: Update, context: CallbackContext) -> None:
             if document_type.startswith('video/') or document_name.endswith(
                 ('.mp4', '.mov', '.avi', '.mkv', '.webm', '.flv')
             ):
-                file = await document.get_file()
-                img_url = file.file_path
+                img_url = document.file_id
                 media_file_id = document.file_id
                 is_video = True
                 media_attached = True
@@ -863,6 +883,12 @@ async def update_card(update: Update, context: CallbackContext) -> None:
                     caption=caption,
                     parse_mode='HTML'
                 )
+
+            media_file_id, media_type, is_video = telegram_message_media(
+                message,
+                'video' if is_video else 'photo',
+                is_video,
+            )
             
             # Update database
             update_data = {
@@ -870,7 +896,10 @@ async def update_card(update: Update, context: CallbackContext) -> None:
                 'name': character_name,
                 'anime': anime,
                 'rarity': rarity,
-                'message_id': message.message_id
+                'message_id': message.message_id,
+                'media_file_id': media_file_id,
+                'media_type': media_type,
+                'is_video': is_video,
             }
             
             await collection.update_one({'id': character_id}, {'$set': update_data})
@@ -890,8 +919,9 @@ async def update_card(update: Update, context: CallbackContext) -> None:
                 'img_url': new_img_url,
                 'name': character_name,
                 'anime': anime,
-                'rarity': rarity
-            }})
+                'rarity': rarity,
+                'is_video': is_video,
+            }, '$unset': {'media_file_id': '', 'media_type': ''}})
             await update.message.reply_text(f'Character updated in DB but failed to update in channel: {str(e)}')
 
     except Exception as e:
@@ -1044,15 +1074,15 @@ async def summon(update: Update, context: CallbackContext) -> None:
         
         # Process the image URL for compatibility and handle errors gracefully
         try:
-            from shivu import process_image_url
-            processed_url = await process_image_url(character['img_url'])
+            media_source, media_type, is_video = await get_character_media_source(character)
             
             await send_character_media(
                 bot=context.bot,
                 chat_id=chat_id,
-                media_url=processed_url,
+                media_url=media_source,
                 caption=caption,
-                is_video=await is_video_character(character),
+                is_video=is_video,
+                media_type=media_type,
             )
         except Exception as img_error:
             # If image fails to load, send text message instead
@@ -1099,15 +1129,15 @@ async def summon(update: Update, context: CallbackContext) -> None:
         
         # Process the image URL for compatibility and handle errors gracefully
         try:
-            from shivu import process_image_url
-            processed_url = await process_image_url(character['img_url'])
+            media_source, media_type, is_video = await get_character_media_source(character)
             
             await send_character_media(
                 bot=context.bot,
                 chat_id=chat_id,
-                media_url=processed_url,
+                media_url=media_source,
                 caption=caption,
-                is_video=await is_video_character(character),
+                is_video=is_video,
+                media_type=media_type,
             )
         except Exception as img_error:
             # If image fails to load, send text message instead
@@ -1290,19 +1320,21 @@ async def find(update: Update, context: CallbackContext) -> None:
                 caption += f"{i}. <a href='tg://user?id={catcher['user_id']}'>{catcher['name']}</a> — {catcher['count']}x\n"
         
         # Process URL and send
-        from shivu import process_image_url, send_character_media
-        processed_url = await process_image_url(character['img_url'])
+        media_source, media_type, is_video = await get_character_media_source(character)
         
         await send_character_media(
             bot=context.bot,
             chat_id=update.effective_chat.id,
-            media_url=processed_url,
+            media_url=media_source,
             caption=caption,
-            is_video=await is_video_character(character),
+            is_video=is_video,
+            media_type=media_type,
         )
                 
     except Exception as e:
-        await update.message.reply_text(f'❌ Error finding character: {str(e)}')
+        await update.message.reply_text(
+            '❌ Error finding character. Its media could not be loaded.'
+        )
 
 
 application.add_handler(CommandHandler("upload", upload))
