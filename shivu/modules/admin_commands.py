@@ -837,6 +837,7 @@ COMMAND_CATALOG = (
     (("update",), "Update an existing character’s details.", "Uploader/admin"),
     (("delete",), "Delete a character from the database.", "Uploader/admin"),
     (("adduploader",), "Add a user to the uploader permissions list.", "Sudo"),
+    (("headuploader",), "Grant full upload and review access to a user.", "Sudo"),
     (("promote",), "Promote a user to an uploader or elevated role.", "Sudo"),
     (("remove",), "Remove a character from a user’s collection.", "Sudo"),
     (("summon",), "Manually spawn a character for testing or administration.", "Admin"),

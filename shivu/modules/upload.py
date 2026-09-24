@@ -80,6 +80,10 @@ async def get_uploader_level(user_id):
     if user_id_str in sudo_users or user_id_str in head_users:
         return 3
     
+    head_uploaders_collection = db['head_uploaders']
+    if await head_uploaders_collection.find_one({'user_id': user_id_str}):
+        return 3
+
     dynamic_uploaders_collection = db['dynamic_uploading_users']
     uploader = await dynamic_uploaders_collection.find_one({'user_id': user_id_str})
     if uploader:
@@ -169,6 +173,63 @@ async def adduploader(update: Update, context: CallbackContext) -> None:
         f"👤 <a href='tg://user?id={target_user.id}'>{escape(target_user.first_name)}</a>\n"
         f"🆔 <code>{target_user.id}</code>\n"
         f"📊 Level: <b>{level}</b>",
+        parse_mode='HTML'
+    )
+
+
+async def headuploader(update: Update, context: CallbackContext) -> None:
+    """Add a replied-to user as a full-access head uploader."""
+    if not update.effective_user or not update.message:
+        return
+
+    if not is_sudo_user(update.effective_user.id):
+        await update.message.reply_text(
+            "🚫 Only sudo users can add head uploaders."
+        )
+        return
+
+    target_message = update.message.reply_to_message
+    if not target_message or not target_message.from_user:
+        await update.message.reply_text(
+            "📝 Reply to a user's message with `/headuploader`."
+        )
+        return
+
+    target_user = target_message.from_user
+    target_user_id = str(target_user.id)
+    if is_sudo_user(target_user.id) or is_head_user(target_user.id):
+        await update.message.reply_text(
+            "ℹ️ This user already has full head uploader access."
+        )
+        return
+
+    head_uploaders_collection = db['head_uploaders']
+    already_head_uploader = await head_uploaders_collection.find_one(
+        {'user_id': target_user_id}
+    )
+    await head_uploaders_collection.update_one(
+        {'user_id': target_user_id},
+        {
+            '$set': {
+                'user_id': target_user_id,
+                'username': target_user.username,
+                'first_name': target_user.first_name,
+                'added_by': str(update.effective_user.id),
+                'updated_at': datetime.now(timezone.utc),
+            },
+            '$setOnInsert': {
+                'created_at': datetime.now(timezone.utc),
+            }
+        },
+        upsert=True
+    )
+
+    status = "already a head uploader" if already_head_uploader else "added as head uploader"
+    await update.message.reply_text(
+        f"✅ <b>User {status}</b>\n\n"
+        f"👤 <a href='tg://user?id={target_user.id}'>{escape(target_user.first_name)}</a>\n"
+        f"🆔 <code>{target_user.id}</code>\n"
+        "📊 Full upload access and upload-review permissions granted.",
         parse_mode='HTML'
     )
 
@@ -316,6 +377,10 @@ async def can_upload_user(user_id):
     if user_id_str in sudo_users or user_id_str in head_users or user_id_str in uploading_users:
         return True
     
+    head_uploaders_collection = db['head_uploaders']
+    if await head_uploaders_collection.find_one({'user_id': user_id_str}):
+        return True
+
     # Check if user is in dynamic uploading_users collection
     dynamic_uploaders_collection = db['dynamic_uploading_users']
     uploader = await dynamic_uploaders_collection.find_one({'user_id': user_id_str})
@@ -340,8 +405,10 @@ def is_head_user(user_id):
     return str(user_id) in {str(head_id) for head_id in head_users}
 
 
-def can_review_upload(user_id):
-    return is_sudo_user(user_id) or is_head_user(user_id)
+async def can_review_upload(user_id):
+    if is_sudo_user(user_id) or is_head_user(user_id):
+        return True
+    return bool(await db['head_uploaders'].find_one({'user_id': str(user_id)}))
 
 
 def get_upload_review_keyboard(pending_id):
@@ -478,7 +545,7 @@ async def upload_review_callback(update: Update, context: CallbackContext) -> No
     if not query or not query.from_user:
         return
 
-    if not can_review_upload(query.from_user.id):
+    if not await can_review_upload(query.from_user.id):
         await query.answer(
             "Only sudo users or head uploaders can approve uploads.",
             show_alert=True
@@ -744,7 +811,7 @@ async def upload(update: Update, context: CallbackContext) -> None:
             'uploader_name': uploader.full_name,
         }
 
-        if can_review_upload(uploader.id):
+        if await can_review_upload(uploader.id):
             character = await finalize_character_upload(context, payload)
             await update.message.reply_text(
                 f"✅ CHARACTER ADDED SUCCESSFULLY! ID: #{character['id']}"
@@ -1367,6 +1434,7 @@ application.add_handler(
 application.add_handler(CommandHandler("update", update_card))
 application.add_handler(CommandHandler("delete", delete))
 application.add_handler(CommandHandler("adduploader", adduploader))
+application.add_handler(CommandHandler("headuploader", headuploader))
 application.add_handler(CommandHandler("promote", promote))
 application.add_handler(CommandHandler("remove", remove_character_from_user))
 application.add_handler(CommandHandler("find", find))
