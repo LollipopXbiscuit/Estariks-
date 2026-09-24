@@ -139,20 +139,35 @@ def telegram_message_media(message, default_media_type=None, default_is_video=Fa
     return None, default_media_type, default_is_video
 
 
-async def get_character_media_source(character):
+async def get_character_media_source(character, force_refresh=False):
     """Resolve a character's reusable Telegram file id or a remote media URL."""
     media_type = character.get('media_type')
+    media_url = str(character.get('img_url') or '')
+    media_file_id = character.get('media_file_id')
+    video_sources = (media_url, str(media_file_id or ''))
     is_video = bool(
         character.get('is_video')
         or media_type in ('video', 'animation')
-        or (media_type == 'document' and 'video' in str(character.get('img_url', '')).lower())
+        or (
+            media_type == 'document'
+            and any('video' in source.lower() for source in video_sources)
+        )
         or '🎬' in str(character.get('name', ''))
+        or any(
+            urlparse(source).path.lower().endswith(extension)
+            for source in video_sources
+            for extension in ('.mp4', '.mov', '.avi', '.mkv', '.webm', '.flv')
+        )
     )
-    media_file_id = character.get('media_file_id')
-    if media_file_id:
+    legacy_media_url = str(media_file_id or '')
+    parsed_media_file_id = urlparse(legacy_media_url)
+    media_file_id_is_url = bool(
+        parsed_media_file_id.scheme
+        or legacy_media_url.startswith('/file/bot')
+    )
+    if media_file_id and not media_file_id_is_url and not force_refresh:
         return media_file_id, media_type, is_video
 
-    media_url = str(character.get('img_url') or '')
     parsed_url = urlparse(media_url)
     is_telegram_download_url = (
         parsed_url.netloc.lower() == 'api.telegram.org'
@@ -162,7 +177,7 @@ async def get_character_media_source(character):
 
     # Telegram file download paths are temporary and must not be reused as
     # media URLs. Recover the stable file_id from the bot's channel copy.
-    if is_telegram_download_url or is_non_url_path:
+    if force_refresh or is_telegram_download_url or is_non_url_path or media_file_id_is_url:
         message_id = character.get('message_id')
         if message_id:
             try:
@@ -193,9 +208,9 @@ async def get_character_media_source(character):
                     return media_file_id, media_type, is_video
             except Exception as error:
                 LOGGER.warning(
-                    "Could not recover Telegram media for character %s: %s",
+                    "Could not recover Telegram media for character %s (%s)",
                     character.get('id', 'unknown'),
-                    error,
+                    type(error).__name__,
                 )
         raise ValueError(
             "This character has an expired Telegram file path and no reusable channel copy."
@@ -212,13 +227,15 @@ async def send_character_media(
     is_video,
     media_type=None,
     reply_markup=None,
+    parse_mode='HTML',
+    character=None,
 ):
     """Send a character image or video without silently changing its media type."""
     def send_media(source):
         options = {
             'chat_id': chat_id,
             'caption': caption,
-            'parse_mode': 'HTML',
+            'parse_mode': parse_mode,
             'reply_markup': reply_markup,
         }
         if media_type == 'animation':
@@ -232,6 +249,34 @@ async def send_character_media(
     try:
         return await send_media(media_url)
     except Exception as direct_error:
+        if (
+            character
+            and isinstance(media_url, str)
+            and not media_url.startswith(('http://', 'https://'))
+        ):
+            try:
+                fresh_source, fresh_media_type, fresh_is_video = (
+                    await get_character_media_source(character, force_refresh=True)
+                )
+            except Exception as refresh_error:
+                LOGGER.warning(
+                    "Could not refresh Telegram media for character %s (%s)",
+                    character.get('id', 'unknown'),
+                    type(refresh_error).__name__,
+                )
+            else:
+                if fresh_source and fresh_source != media_url:
+                    media_type = fresh_media_type
+                    is_video = fresh_is_video
+                    try:
+                        return await send_media(fresh_source)
+                    except Exception as refreshed_send_error:
+                        LOGGER.warning(
+                            "Refreshed media send failed for character %s (%s)",
+                            character.get('id', 'unknown'),
+                            type(refreshed_send_error).__name__,
+                        )
+
         # Telegram's servers cannot fetch some valid remote media URLs (CDN
         # headers, redirects, or an incorrect content type). Upload the bytes
         # from this process instead of changing a video into a still image.
@@ -243,9 +288,9 @@ async def send_character_media(
             raise
 
         LOGGER.warning(
-            "Direct %s send failed; downloading before retry: %s",
+            "Direct %s send failed (%s); downloading before retry",
             "video" if is_video else "photo",
-            direct_error,
+            type(direct_error).__name__,
         )
 
         timeout = aiohttp.ClientTimeout(total=120)
@@ -275,5 +320,6 @@ async def send_character_media(
         except Exception as upload_error:
             raise RuntimeError(
                 f"Telegram rejected the direct {'video' if is_video else 'photo'} URL "
-                f"({direct_error}) and the downloaded media upload ({upload_error})"
+                f"({type(direct_error).__name__}) and the downloaded media upload "
+                f"({type(upload_error).__name__})"
             ) from upload_error

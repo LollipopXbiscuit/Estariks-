@@ -187,14 +187,16 @@ async def inlinequery(update: Update, context: CallbackContext) -> None:
             
             # Detect event
             event_name = get_event_name(character.get('name', ''))
-            event_line = f"\n🌟 Event: {event_name}" if event_name else ""
+            event_line = f"\n🌟 Event: {escape(event_name)}" if event_name else ""
             
             # Simple caption without slow database queries
             caption = (
                 f"OwO! Check out this Character!\n\n"
-                f"{character['anime']}\n"
-                f"{character['id']} {character['name']}\n"
-                f"(𝙍𝘼𝙍𝙄𝙏𝙔: {rarity_emoji} {character.get('rarity', 'Unknown')}){event_line}"
+                f"{escape(str(character.get('anime', 'Unknown')))}\n"
+                f"{escape(str(character.get('id', '')))} "
+                f"{escape(str(character.get('name', 'Unknown')))}\n"
+                f"(𝙍𝘼𝙍𝙄𝙏𝙔: {rarity_emoji} "
+                f"{escape(str(character.get('rarity', 'Unknown')))}){event_line}"
             )
             
             # Get the correct display URL (respecting active_slot for custom characters)
@@ -212,6 +214,7 @@ async def inlinequery(update: Update, context: CallbackContext) -> None:
                         gif_file_id=file_id,
                         title=f"{character['name']} - {character['anime']}",
                         caption=caption,
+                        parse_mode='HTML',
                     ))
                 elif media_type == 'document':
                     results.append(InlineQueryResultCachedDocument(
@@ -219,6 +222,7 @@ async def inlinequery(update: Update, context: CallbackContext) -> None:
                         document_file_id=file_id,
                         title=f"{character['name']} - {character['anime']}",
                         caption=caption,
+                        parse_mode='HTML',
                     ))
                 elif character.get('is_video') or media_type == 'video':
                     results.append(InlineQueryResultCachedVideo(
@@ -226,12 +230,14 @@ async def inlinequery(update: Update, context: CallbackContext) -> None:
                         video_file_id=file_id,
                         title=f"{character['name']} - {character['anime']}",
                         caption=caption,
+                        parse_mode='HTML',
                     ))
                 else:
                     results.append(InlineQueryResultCachedPhoto(
                         id=result_id,
                         photo_file_id=file_id,
                         caption=caption,
+                        parse_mode='HTML',
                     ))
                 continue
             
@@ -263,19 +269,16 @@ async def inlinequery(update: Update, context: CallbackContext) -> None:
                             mime_type=mime_type,
                             thumbnail_url=placeholder_thumbnail,
                             title=f"{character['name']} - {character['anime']}",
-                            caption=caption
+                            caption=caption,
+                            parse_mode='HTML',
                         )
                     )
                 except Exception as video_error:
-                    # Fallback: treat as photo if video format is rejected
-                    LOGGER.warning(f"Video inline result failed for character {character['id']} ({character['name']}), URL: {processed_url[:100]}, Error: {str(video_error)}. Falling back to photo.")
-                    results.append(
-                        InlineQueryResultPhoto(
-                            thumbnail_url=processed_url,
-                            id=f"{character['id']}_{time.time()}",
-                            photo_url=processed_url,
-                            caption=f"🎬 [Video] {caption}"
-                        )
+                    # A video URL must not be re-sent as a still photo.
+                    LOGGER.warning(
+                        "Could not create inline video result for character %s (%s)",
+                        character.get('id', 'unknown'),
+                        type(video_error).__name__,
                     )
             else:
                 results.append(
@@ -283,12 +286,17 @@ async def inlinequery(update: Update, context: CallbackContext) -> None:
                         thumbnail_url=processed_url,
                         id=f"{character['id']}_{time.time()}",
                         photo_url=processed_url,
-                        caption=caption
+                        caption=caption,
+                        parse_mode='HTML',
                     )
                 )
         except Exception as e:
             # Log error and skip problematic characters to prevent the entire query from failing
-            LOGGER.error(f"Failed to create inline result for character {character.get('id', 'unknown')} ({character.get('name', 'unknown')}): {str(e)}")
+            LOGGER.error(
+                "Failed to create inline result for character %s (%s)",
+                character.get('id', 'unknown'),
+                type(e).__name__,
+            )
             continue
 
     await update.inline_query.answer(results, next_offset=next_offset, cache_time=5)

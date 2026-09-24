@@ -273,9 +273,10 @@ async def send_image(update: Update, context: CallbackContext) -> None:
             caption=caption,
             is_video=is_video,
             media_type=media_type,
+            character=character,
         )
     except Exception as e:
-        LOGGER.error(f"Error sending character image: {str(e)}")
+        LOGGER.error("Error sending character media (%s)", type(e).__name__)
         await context.bot.send_message(
             chat_id=chat_id,
             text=f"{caption}\n\n⚠️ 𝘐𝘮𝘢𝘨𝘦 𝘤𝘰𝘶𝘭𝘥 𝘯𝘰𝘵 𝘣𝘦 𝘭𝘰𝘢𝘥𝘦𝘥",

@@ -10,6 +10,7 @@ from shivu import (
     collection,
     application,
     get_character_media_source,
+    send_character_media,
 )
 from shivu.config import Config
 
@@ -18,18 +19,18 @@ pending_trades = {}
 
 async def reply_character_preview(message, character, caption, reply_markup, parse_mode):
     source, media_type, is_video = await get_character_media_source(character)
-    options = {
-        'caption': caption,
-        'parse_mode': parse_mode,
-        'reply_markup': reply_markup,
-    }
-    if media_type == 'animation':
-        return await message.reply_animation(animation=source, **options)
-    if media_type == 'document':
-        return await message.reply_document(document=source, **options)
-    if is_video:
-        return await message.reply_video(video=source, **options)
-    return await message.reply_photo(photo=source, **options)
+    is_python_telegram_bot = message.__class__.__module__.startswith('telegram.')
+    return await send_character_media(
+        bot=message.get_bot() if is_python_telegram_bot else message._client,
+        chat_id=message.chat_id if is_python_telegram_bot else message.chat.id,
+        media_url=source,
+        caption=caption,
+        is_video=is_video,
+        media_type=media_type,
+        reply_markup=reply_markup,
+        parse_mode=parse_mode,
+        character=character,
+    )
 
 
 @shivuu.on_message(filters.command("trade"))
@@ -229,8 +230,9 @@ async def gift(client, message):
     caption = (f"🎁 <b>Do you want to gift this character?</b>\n\n"
                f"🎴 <b>Name:</b> {escape(character['name'])}\n"
                f"📺 <b>Anime:</b> {escape(character['anime'])}\n"
-               f"🌟 <b>Rarity:</b> {rarity_emoji} {character.get('rarity', 'Unknown')}\n"
-               f"🆔 <b>ID:</b> <code>{character['id']}</code>\n\n"
+               f"🌟 <b>Rarity:</b> {rarity_emoji} "
+               f"{escape(str(character.get('rarity', 'Unknown')))}\n"
+               f"🆔 <b>ID:</b> <code>{escape(str(character['id']))}</code>\n\n"
                f"👤 <b>To:</b> {escape(message.reply_to_message.from_user.first_name)}")
 
     try:
@@ -449,8 +451,9 @@ async def gift_ptb(update: Update, context: CallbackContext):
     caption = (f"🎁 <b>Do you want to gift this character?</b>\n\n"
                f"🎴 <b>Name:</b> {escape(character['name'])}\n"
                f"📺 <b>Anime:</b> {escape(character['anime'])}\n"
-               f"🌟 <b>Rarity:</b> {rarity_emoji} {character.get('rarity', 'Unknown')}\n"
-               f"🆔 <b>ID:</b> <code>{character['id']}</code>\n\n"
+               f"🌟 <b>Rarity:</b> {rarity_emoji} "
+               f"{escape(str(character.get('rarity', 'Unknown')))}\n"
+               f"🆔 <b>ID:</b> <code>{escape(str(character['id']))}</code>\n\n"
                f"👤 <b>To:</b> {escape(update.message.reply_to_message.from_user.first_name)}")
     
     try:

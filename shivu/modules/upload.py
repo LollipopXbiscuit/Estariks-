@@ -12,6 +12,7 @@ from telegram.ext import CallbackQueryHandler, CommandHandler, CallbackContext
 
 from shivu import (
     application,
+    LOGGER,
     sudo_users,
     uploading_users,
     head_users,
@@ -840,13 +841,14 @@ async def update_card(update: Update, context: CallbackContext) -> None:
         processed_url = await process_image_url(new_img_url)
         
         caption = (
-            f"✨ <b>{character_name}</b> (UPDATED) ✨\n"
-            f"🎌 <i>{anime}</i>\n"
+            f"✨ <b>{escape(character_name)}</b> (UPDATED) ✨\n"
+            f"🎌 <i>{escape(anime)}</i>\n"
             f"━━━━━━━━━━━━━━━━\n"
-            f"{rarity_emoji} <b>{rarity}</b>\n"
+            f"{rarity_emoji} <b>{escape(rarity)}</b>\n"
             f"🆔 <b>ID:</b> #{character_id}\n"
             f"━━━━━━━━━━━━━━━━\n"
-            f"📤 Updated by <a href='tg://user?id={update.effective_user.id}'>{update.effective_user.first_name}</a>"
+            f"📤 Updated by <a href='tg://user?id={update.effective_user.id}'>"
+            f"{escape(update.effective_user.first_name or 'User')}</a>"
         )
         
         try:
@@ -860,13 +862,14 @@ async def update_card(update: Update, context: CallbackContext) -> None:
                 raise ValueError("New Image URL is empty")
             
             caption = (
-                f"✨ <b>{character_name}</b> (UPDATED) ✨\n"
-                f"🎌 <i>{anime}</i>\n"
+                f"✨ <b>{escape(character_name)}</b> (UPDATED) ✨\n"
+                f"🎌 <i>{escape(anime)}</i>\n"
                 f"━━━━━━━━━━━━━━━━\n"
-                f"{rarity_emoji} <b>{rarity}</b>\n"
+                f"{rarity_emoji} <b>{escape(rarity)}</b>\n"
                 f"🆔 <b>ID:</b> #{character_id}\n"
                 f"━━━━━━━━━━━━━━━━\n"
-                f"📤 Updated by <a href='tg://user?id={update.effective_user.id}'>{update.effective_user.first_name}</a>"
+                f"📤 Updated by <a href='tg://user?id={update.effective_user.id}'>"
+                f"{escape(update.effective_user.first_name or 'User')}</a>"
             )
             
             if is_video:
@@ -1083,6 +1086,7 @@ async def summon(update: Update, context: CallbackContext) -> None:
                 caption=caption,
                 is_video=is_video,
                 media_type=media_type,
+                character=character,
             )
         except Exception as img_error:
             # If image fails to load, send text message instead
@@ -1138,6 +1142,7 @@ async def summon(update: Update, context: CallbackContext) -> None:
                 caption=caption,
                 is_video=is_video,
                 media_type=media_type,
+                character=character,
             )
         except Exception as img_error:
             # If image fails to load, send text message instead
@@ -1299,15 +1304,19 @@ async def find(update: Update, context: CallbackContext) -> None:
         
         # Detect event
         event_name = get_event_name(character.get('name', ''))
-        event_text = f"\n🎭 <b>Event:</b> {event_name}" if event_name else ""
+        event_text = (
+            f"\n🎭 <b>Event:</b> {escape(event_name)}"
+            if event_name else ""
+        )
         
         # Create pretty display text
         caption = (
-            f"✨ <b>{character['name']}</b> ✨\n"
-            f"🎌 <b>Anime:</b> {character['anime']}\n"
+            f"✨ <b>{escape(str(character.get('name', 'Unknown')))}</b> ✨\n"
+            f"🎌 <b>Anime:</b> {escape(str(character.get('anime', 'Unknown')))}\n"
             f"━━━━━━━━━━━━━━━━\n"
-            f"{rarity_emoji} <b>Rarity:</b> {character['rarity']}{event_text}\n"
-            f"🆔 <b>ID:</b> #{character['id']}\n"
+            f"{rarity_emoji} <b>Rarity:</b> "
+            f"{escape(str(character.get('rarity', 'Unknown')))}{event_text}\n"
+            f"🆔 <b>ID:</b> #{escape(str(character.get('id', character_id)))}\n"
             f"━━━━━━━━━━━━━━━━\n"
             f"📊 <b>Total Caught:</b> {total_caught}\n\n"
             f"🏆 <b>Top Catchers:</b>\n"
@@ -1317,7 +1326,10 @@ async def find(update: Update, context: CallbackContext) -> None:
             caption += "<i>No one has caught this character yet!</i>"
         else:
             for i, catcher in enumerate(top_10, 1):
-                caption += f"{i}. <a href='tg://user?id={catcher['user_id']}'>{catcher['name']}</a> — {catcher['count']}x\n"
+                caption += (
+                    f"{i}. <a href='tg://user?id={catcher['user_id']}'>"
+                    f"{escape(str(catcher['name']))}</a> — {catcher['count']}x\n"
+                )
         
         # Process URL and send
         media_source, media_type, is_video = await get_character_media_source(character)
@@ -1329,11 +1341,18 @@ async def find(update: Update, context: CallbackContext) -> None:
             caption=caption,
             is_video=is_video,
             media_type=media_type,
+            character=character,
         )
                 
     except Exception as e:
+        LOGGER.error(
+            "Could not display character %s in /find (%s)",
+            locals().get('character_id', 'unknown'),
+            type(e).__name__,
+        )
         await update.message.reply_text(
-            '❌ Error finding character. Its media could not be loaded.'
+            '❌ Error finding character. Its media could not be loaded. '
+            'Please ask an admin to refresh this character’s media.'
         )
 
 
